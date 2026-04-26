@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Учёт зарядки Pro + CSV</title>
+    <title>Учёт зарядки Multi</title>
     <meta name="theme-color" content="#f8f9fa">
     
     <style>
@@ -22,16 +22,21 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        .container { width: 100%; max-width: 500px; }
+        .container { 
+            width: 100%; 
+            max-width: 600px; 
+            margin: 0 auto;
+        }
 
-        h1 { font-size: 24px; margin-bottom: 5px; text-align: center; }
+        h1 { font-size: 22px; margin-bottom: 5px; text-align: center; }
         .subtitle { text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 15px; }
 
         /* Панель ввода */
@@ -39,24 +44,59 @@
             background: var(--card);
             padding: 15px;
             border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
         }
-
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
         
-        select, input {
+        input[type="date"], input[type="number"] {
             padding: 12px;
-            border: 1px solid #d1d5db;            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
             font-size: 16px;
             width: 100%;
             outline: none;
+            background: #fff;
         }
-        select:focus, input:focus { border-color: var(--primary); ring: 2px solid var(--primary); }
 
+        /* Стили для чекбоксов-кнопок */
+        .battery-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .batt-checkbox {
+            display: none; /* Прячем стандартный чекбокс */
+        }
+
+        .batt-label {
+            flex: 1;
+            padding: 10px 5px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            user-select: none;
+            color: var(--text-secondary);
+        }
+
+        /* Активное состояние чекбокса */
+        .batt-checkbox:checked + .batt-label {
+            background: #dbeafe;
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 700;
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+        
         /* Кнопки */
-        button {
-            border: none;
+        button {            border: none;
             padding: 12px;
             border-radius: 10px;
             font-size: 16px;
@@ -67,16 +107,14 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            width: 100%;
         }
         button:active { transform: scale(0.98); }
 
         .btn-voice { 
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white; 
-            width: 100%; 
             margin-bottom: 15px;
-            position: relative;
-            overflow: hidden;
         }
         
         .listening { animation: pulse 1.5s infinite; background: #ef4444 !important; }
@@ -87,16 +125,39 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        .btn-add { background-color: var(--success); color: white; width: 100%; margin-bottom: 10px;}
+        .btn-add { background-color: var(--success); color: white; margin-bottom: 10px;}
         
         .actions-row { display: flex; gap: 10px; }
-        .btn-export { background-color: #4b5563; color: white; flex: 1; font-size: 14px; }
-        .btn-clear { background-color: transparent; color: #9ca3af; flex: 1; font-size: 14px; border: 1px solid #e5e7eb;}
+        .btn-export { background-color: #4b5563; color: white; font-size: 14px; padding: 10px;}
+        .btn-clear { background-color: transparent; color: #9ca3af; font-size: 14px; border: 1px solid #e5e7eb; padding: 10px;}
 
-        .btn-delete { background: #fee2e2; color: var(--danger); padding: 6px 10px; font-size: 12px; margin-left: auto;}
+        .btn-delete { 
+            background: #fee2e2; 
+            color: var(--danger); 
+            padding: 6px 10px; 
+            font-size: 12px; 
+            margin-left: auto;
+            width: auto;
+        }
 
         /* Список */
-        .list-container { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }        .list-header { padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 14px; color: var(--text-secondary); display: flex; justify-content: space-between;}
+        .list-container { 
+            background: var(--card); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);             width: 100%;
+        }
+        
+        .list-header { 
+            padding: 12px 15px; 
+            background: #f9fafb; 
+            border-bottom: 1px solid #e5e7eb; 
+            font-weight: 600; 
+            font-size: 14px; 
+            color: var(--text-secondary); 
+            display: flex; 
+            justify-content: space-between;
+        }
         
         .list-item {
             padding: 12px 15px;
@@ -104,14 +165,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            animation: fadeIn 0.3s ease-in;
         }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
         .item-info { flex: 1; }
         .item-date { font-weight: 500; font-size: 15px; }
-        .item-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: flex; gap: 8px; align-items: center;}
+        .item-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
         
         .badge-batt { background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
         .badge-cycle { background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
@@ -120,7 +178,6 @@
 
         .status-text { text-align: center; font-size: 13px; height: 18px; margin-bottom: 10px; color: var(--text-secondary); font-style: italic;}
         
-        /* Всплывающее уведомление об авто-сохранении */
         .toast {
             position: fixed;
             bottom: 20px;
@@ -135,198 +192,36 @@
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 100;
-        }
-        .toast.show { opacity: 1; }
+            width: max-content;
+            max-width: 90%;
+        }        .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🔋 Battery Tracker Pro</h1>
-    <div class="subtitle">Скажите: "Второй аккумулятор сегодня 85 процентов"</div>
-
-    <div class="input-group">        <button class="btn-voice" id="voiceBtn" onclick="toggleVoice()">
-            🎤 Нажмите и скажите
-        </button>
-        <div class="status-text" id="voiceStatus"></div>
-
-        <div class="row">
-            <select id="batterySelect">
-                <option value="1">АКБ №1</option>
-                <option value="2">АКБ №2</option>
-                <option value="3">АКБ №3</option>
-                <option value="4">АКБ №4</option>
-            </select>
-        </div>
-
-        <div class="row">
-            <input type="date" id="Вот обновленный код.
-
-**Что нового:**
-1.  **Экспорт в CSV:** Добавлена кнопка «📥 Скачать Excel (CSV)». Файл формируется с разделителями, совместимыми с русским Excel.
-2.  **Автосохранение при голосовом вводе:** Теперь, если фраза распознана успешно и найдены все данные (Номер АКБ, Дата, Процент), запись **автоматически добавляется** в список через 1.5 секунды (дается время на проверку глазами).
-3.  **Умный парсинг:** Улучшена логика поиска чисел, чтобы отличать номер аккумулятора от процента заряда.
-
-```html
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Учёт зарядки Pro + CSV</title>
-    <meta name="theme-color" content="#f8f9fa">
-    
-    <style>
-        :root {
-            --primary: #2563eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --bg: #f3f4f6;
-            --card: #ffffff;
-            --text: #1f2937;
-            --text-secondary: #6b7280;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container { width: 100%; max-width: 500px; }
-
-        h1 { font-size: 24px; margin-bottom: 5px; text-align: center; }
-        .subtitle { text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 15px; }
-
-        /* Панель ввода */
-        .input-group {
-            background: var(--card);
-            padding: 15px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        
-        select, input {
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 16px;
-            width: 100%;
-            outline: none;
-        }
-        select:focus, input:focus { border-color: var(--primary); ring: 2px solid var(--primary); }
-
-        /* Кнопки */
-        button {
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        button:active { transform: scale(0.98); }
-
-        .btn-voice { 
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white; 
-            width: 100%;             margin-bottom: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .listening { animation: pulse 1.5s infinite; background: #ef4444 !important; }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .btn-add { background-color: var(--success); color: white; width: 100%; margin-bottom: 10px;}
-        
-        .actions-row { display: flex; gap: 10px; }
-        .btn-export { background-color: #4b5563; color: white; flex: 1; font-size: 14px; }
-        .btn-clear { background-color: transparent; color: #9ca3af; flex: 1; font-size: 14px; border: 1px solid #e5e7eb;}
-
-        .btn-delete { background: #fee2e2; color: var(--danger); padding: 6px 10px; font-size: 12px; margin-left: auto;}
-
-        /* Список */
-        .list-container { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .list-header { padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 14px; color: var(--text-secondary); display: flex; justify-content: space-between;}
-        
-        .list-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f3f4f6;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .item-info { flex: 1; }
-        .item-date { font-weight: 500; font-size: 15px; }
-        .item-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: flex; gap: 8px; align-items: center;}
-        
-        .badge-batt { background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        .badge-cycle { background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
-        
-        .item-charge { font-weight: 800; color: var(--success); font-size: 18px; min-width: 50px; text-align: right; }
-
-        .status-text { text-align: center; font-size: 13px; height: 18px; margin-bottom: 10px; color: var(--text-secondary); font-style: italic;}
-        
-        /* Всплывающее уведомление об авто-сохранении */
-        .toast {
-            position: fixed;            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 100;
-        }
-        .toast.show { opacity: 1; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>🔋 Battery Tracker Pro</h1>
-    <div class="subtitle">Скажите: "Второй аккумулятор сегодня 85 процентов"</div>
+    <h1>🔋 Battery Tracker Multi</h1>
+    <div class="subtitle">Выберите несколько АКБ и нажмите добавить</div>
 
     <div class="input-group">
         <button class="btn-voice" id="voiceBtn" onclick="toggleVoice()">
-            🎤 Нажмите и скажите
+            🎤 Голосовой ввод
         </button>
         <div class="status-text" id="voiceStatus"></div>
 
-        <div class="row">
-            <select id="batterySelect">
-                <option value="1">АКБ №1</option>
-                <option value="2">АКБ №2</option>
-                <option value="3">АКБ №3</option>
-                <option value="4">АКБ №4</option>
-            </select>
+        <!-- Выбор АКБ через чекбоксы -->
+        <div class="battery-selector">
+            <input type="checkbox" id="chk1" class="batt-checkbox" value="1" checked>
+            <label for="chk1" class="batt-label">АКБ 1</label>
+
+            <input type="checkbox" id="chk2" class="batt-checkbox" value="2">
+            <label for="chk2" class="batt-label">АКБ 2</label>
+
+            <input type="checkbox" id="chk3" class="batt-checkbox" value="3">
+            <label for="chk3" class="batt-label">АКБ 3</label>
+
+            <input type="checkbox" id="chk4" class="batt-checkbox" value="4">
+            <label for="chk4" class="batt-label">АКБ 4</label>
         </div>
 
         <div class="row">
@@ -335,38 +230,38 @@
         </div>
 
         <button class="btn-add" onclick="manualAddEntry()">
-            ➕ Добавить вручную
+            ➕ Добавить запись
         </button>
         
         <div class="actions-row">
-            <button class="btn-export" onclick="exportCSV()">📥 Скачать Excel (CSV)</button>
-            <button class="btn-clear" onclick="clearAll()">Очистить всё</button>
-        </div>    </div>
+            <button class="btn-export" onclick="exportCSV()">📥 Скачать CSV</button>
+            <button class="btn-clear" onclick="clearAll()">Очистить</button>
+        </div>
+    </div>
 
     <div class="list-container">
         <div class="list-header">
             <span>История</span>
             <span>Записей: <span id="totalCount">0</span></span>
-        </div>
-        <div id="listBody"></div>
+        </div>        <div id="listBody"></div>
     </div>
 </div>
 
-<div id="toast" class="toast">✅ Запись добавлена автоматически</div>
+<div id="toast" class="toast">✅ Запись добавлена</div>
 
 <script>
     // Инициализация
     document.getElementById('dateInput').valueAsDate = new Date();
     let entries = JSON.parse(localStorage.getItem('batteryEntriesPro')) || [];
     
-    // Словари для распознавания речи
     const months = {
         'января': 0, 'февраля': 1, 'марта': 2, 'апреля': 3, 'мая': 4, 'июня': 5,
         'июля': 6, 'августа': 7, 'сентября': 8, 'октября': 9, 'ноября': 10, 'декабря': 11
     };
     
+    // Словарь для распознавания номеров (включая множественные формы)
     const batteryAliases = {
-        'первый': 1, 'первую': 1, 'один': 1, 'единицу': 1,
+        'первый': 1, 'первую': 1, 'один': 1, 'единицу': 1, 'первый': 1,
         'второй': 2, 'вторую': 2, 'два': 2, 'двойку': 2,
         'третий': 3, 'тройку': 3, 'три': 3,
         'четвертый': 4, 'четверку': 4, 'четыре': 4
@@ -376,12 +271,9 @@
         const listBody = document.getElementById('listBody');
         listBody.innerHTML = '';
         
-        // Сортировка: Сначала новые
         entries.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
         document.getElementById('totalCount').innerText = entries.length;
 
-        // Подсчет циклов
         let cycleCounters = {};
         entries.forEach(e => {
             cycleCounters[e.battery] = (cycleCounters[e.battery] || 0) + 1;
@@ -390,6 +282,7 @@
         entries.forEach((entry) => {
             const currentCycle = cycleCounters[entry.battery];
             cycleCounters[entry.battery]--; 
+
             const div = document.createElement('div');
             div.className = 'list-item';
             
@@ -399,8 +292,7 @@
             div.innerHTML = `
                 <div class="item-info">
                     <div class="item-date">${dateStr}</div>
-                    <div class="item-meta">
-                        <span class="badge-batt">АКБ ${entry.battery}</span>
+                    <div class="item-meta">                        <span class="badge-batt">АКБ ${entry.battery}</span>
                         <span class="badge-cycle">Цикл: ${currentCycle}</span>
                     </div>
                 </div>
@@ -416,31 +308,41 @@
         render();
     }
 
-    function addEntryLogic(dateVal, chargeVal, battVal) {
-        if (!dateVal || !chargeVal) return false;
-
-        const newEntry = {
-            id: Date.now(),
-            date: dateVal,
-            charge: parseInt(chargeVal),
-            battery: battVal || document.getElementById('batterySelect').value
-        };
-
-        entries.push(newEntry);
-        saveData();
-        return true;
+    // Функция получения выбранных АКБ
+    function getSelectedBatteries() {
+        const checkboxes = document.querySelectorAll('.batt-checkbox:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
     }
 
     function manualAddEntry() {
         const date = document.getElementById('dateInput').value;
         const charge = document.getElementById('chargeInput').value;
-        const battery = document.getElementById('batterySelect').value;
+        const selectedBatts = getSelectedBatteries();
 
-        if(addEntryLogic(date, charge, battery)) {
-            document.getElementById('chargeInput').value = '';
-            showToast("Запись добавлена");
-        } else {            alert('Заполните дату и процент заряда');
+        if (!date || !charge) {
+            alert('Заполните дату и процент заряда');
+            return;
         }
+        
+        if (selectedBatts.length === 0) {
+            alert('Выберите хотя бы один аккумулятор');
+            return;
+        }
+
+        let count = 0;
+        selectedBatts.forEach(batt => {
+            const newEntry = {
+                id: Date.now() + Math.random(), // Уникальный ID
+                date: date,
+                charge: parseInt(charge),
+                battery: batt
+            };
+            entries.push(newEntry);
+            count++;
+        });
+
+        saveData();        showToast(`Добавлено записей: ${count}`);
+        document.getElementById('chargeInput').value = '';
     }
 
     function deleteEntry(id) {
@@ -451,7 +353,7 @@
     }
 
     function clearAll() {
-        if(confirm('Удалить ВСЮ историю безвозвратно?')) {
+        if(confirm('Удалить ВСЮ историю?')) {
             entries = [];
             saveData();
         }
@@ -464,23 +366,19 @@
         setTimeout(() => t.classList.remove('show'), 2000);
     }
 
-    // --- ЭКСПОРТ В CSV ---
     function exportCSV() {
         if (entries.length === 0) {
             alert('Нет данных для экспорта');
             return;
         }
 
-        // BOM для корректного отображения кириллицы в Excel
         let csvContent = "\uFEFF"; 
-        csvContent += "Дата;Номер АКБ;Заряд %;ID записи\n";
+        csvContent += "Дата;Номер АКБ;Заряд %\n";
 
         entries.forEach(e => {
-            // Преобразуем дату в удобный формат ДД.ММ.ГГГГ
             const d = new Date(e.date);
             const dateFormatted = d.toLocaleDateString('ru-RU');
-            
-            csvContent += `${dateFormatted};${e.battery};${e.charge};${e.id}\n`;
+            csvContent += `${dateFormatted};${e.battery};${e.charge}\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -488,21 +386,20 @@
         const url = URL.createObjectURL(blob);
         
         link.setAttribute("href", url);
-        link.setAttribute("download", `battery_log_${new Date().toISOString().slice(0,10)}.csv`);        link.style.visibility = 'hidden';
+        link.setAttribute("download", `battery_log_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
         
         document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.click();        document.body.removeChild(link);
     }
 
     // --- ГОЛОСОВОЙ ВВОД ---
-
     let recognition;
     let isListening = false;
 
     function initSpeech() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert('Голосовой ввод не поддерживается. Используйте Chrome или Safari.');
+            alert('Голосовой ввод не поддерживается.');
             return null;
         }
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -528,44 +425,58 @@
         recognition.onstart = () => {
             isListening = true;
             btn.classList.add('listening');
-            btn.innerText = "🛑 Стоп (слушаю...)";
+            btn.innerText = "🛑 Стоп";
             status.innerText = "Слушаю...";
         };
 
         recognition.onend = () => {
             isListening = false;
             btn.classList.remove('listening');
-            btn.innerText = "🎤 Нажмите и скажите";
+            btn.innerText = "🎤 Голосовой ввод";
         };
+
         recognition.onresult = (event) => {
             const text = event.results[0][0].transcript.toLowerCase();
             status.innerText = `"${text}"`;
             processVoiceCommand(text);
-        };
-    }
+        };    }
 
     function processVoiceCommand(text) {
-        let foundBattery = null;
+        let foundBatteryIds = [];
         let foundDate = null;
         let foundCharge = null;
 
-        // 1. Поиск АКБ
+        // 1. Поиск АКБ (Множественный выбор)
+        // Проверяем каждое слово из словаря
         for (let word in batteryAliases) {
             if (text.includes(word)) {
-                foundBattery = batteryAliases[word];
-                break;
+                const val = batteryAliases[word];
+                if (!foundBatteryIds.includes(val)) {
+                    foundBatteryIds.push(val);
+                }
             }
         }
+        
         // Проверка на "номер X"
-        const battNumMatch = text.match(/(?:акб|номер|батарея)\s*(\d)/i);
-        if (battNumMatch) foundBattery = parseInt(battNumMatch[1]);
+        const battNumMatches = text.match(/(?:акб|номер|батарея)\s*(\d)/gi);
+        if (battNumMatches) {
+            battNumMatches.forEach(match => {
+                const num = parseInt(match.match(/\d/)[0]);
+                if (num >= 1 && num <= 4 && !foundBatteryIds.includes(num)) {
+                    foundBatteryIds.push(num);
+                }
+            });
+        }
 
-        // Если нашли АКБ голосом, обновляем селектор
-        if (foundBattery) {
-            document.getElementById('batterySelect').value = foundBattery;
-        } else {
-            // Если не сказали номер, берем текущий из селектора
-            foundBattery = document.getElementById('batterySelect').value;
+        // Установка галочек
+        if (foundBatteryIds.length > 0) {
+            // Сначала сбросим все
+            document.querySelectorAll('.batt-checkbox').forEach(cb => cb.checked = false);
+            // Отметим найденные
+            foundBatteryIds.forEach(id => {
+                const chk = document.getElementById('chk' + id);
+                if(chk) chk.checked = true;
+            });
         }
 
         // 2. Поиск Даты
@@ -577,8 +488,7 @@
         } else {
             const dateRegex = /(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)/;
             const dateMatch = text.match(dateRegex);
-            if (dateMatch) {
-                const day = parseInt(dateMatch[1]);
+            if (dateMatch) {                const day = parseInt(dateMatch[1]);
                 const month = months[dateMatch[2]];
                 const year = new Date().getFullYear();
                 const d = new Date(year, month, day);
@@ -586,22 +496,18 @@
             }
         }
 
-        if (foundDate) {            document.getElementById('dateInput').value = foundDate;
+        if (foundDate) {
+            document.getElementById('dateInput').value = foundDate;
         } else {
-            foundDate = document.getElementById('dateInput').value; // Берем из поля, если не сказали
+            foundDate = document.getElementById('dateInput').value;
         }
 
         // 3. Поиск Процентов
-        // Ищем числа. Стараемся игнорировать номер АКБ, если он был назван числом.
         const numbers = text.match(/\d+/g);
         if (numbers) {
             for (let numStr of numbers) {
                 const num = parseInt(numStr);
-                // Логика: если число <= 100 и оно НЕ совпадает с номером АКБ (на всякий случай), то это заряд
                 if (num >= 0 && num <= 100) {
-                    // Доп. проверка: если мы нашли АКБ по слову "два", а число тоже 2, это может быть конфликт.
-                    // Но обычно говорят "Второй ... 80 процентов".
-                    // Просто берем последнее подходящее число <= 100
                     foundCharge = num;
                 }
             }
@@ -612,15 +518,11 @@
         }
 
         // АВТОСОХРАНЕНИЕ
+        // Сохраняем только если нашли заряд и дату. АКБ берем те, что сейчас отмечены.
         if (foundDate && foundCharge) {
-            // Задержка перед сохранением, чтобы пользователь увидел результат распознавания
             setTimeout(() => {
-                addEntryLogic(foundDate, foundCharge, foundBattery);
-                showToast(`✅ Сохранено: АКБ ${foundBattery}, ${foundCharge}%`);
-                
-                // Очистка поля заряда для следующего ввода
-                document.getElementById('chargeInput').value = '';
-            }, 1500);
+                manualAddEntry(); // Используем ту же функцию, она сама считает чекбоксы
+            }, 1000);
         } else {
             showToast("⚠️ Не распознан заряд или дата");
         }
@@ -630,4 +532,4 @@
 </script>
 
 </body>
-</html>
+    </html>
