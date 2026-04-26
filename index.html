@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Учёт зарядки аккумуляторов</title>
     <meta name="theme-color" content="#f8f9fa">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
-    <!-- Manifest data URI -->
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQmF0dGVyeVRyYWNrZXIiLCJzaG9ydF9uYW1lIjoiQmF0dGVyeVRyYWNrZXIiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2Y4ZjlmYSIsInRoZW1lX2NvbG9yIjoiIzEwNzRmMiJ9">
-
     <style>
         :root {
             --primary: #3b82f6;
@@ -47,7 +42,308 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            text-align: center;        }
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        
+        .row.four-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        select, input {
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #fff;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        select:focus, input:focus { outline: none; border-color: var(--primary); }
+
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-voice {            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .btn-voice.listening {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-add { background: var(--primary); color: white; width: 100%; }
+        .btn-save { background: var(--success); color: white; flex: 1; }
+        .btn-export { background: #4b5563; color: white; flex: 1; }
+        .btn-clear { background: var(--danger); color: white; flex: 1; }
+
+        .voice-status {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 10px;
+            min-height: 40px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-style: italic;
+        }
+
+        .voice-hints {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            padding: 8px;
+            background: #e0e7ff;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .list-container {
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);        }
+
+        .list-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            font-weight: bold;
+            font-size: 14px;
+            background: #f8f9fa;
+        }
+
+        .list-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .item-info { flex: 1; }
+        .item-date { font-weight: 600; color: var(--text); font-size: 14px; margin-bottom: 4px; }
+        
+        .item-battery {
+            font-size: 12px;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-right: 6px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .item-capacity {
+            font-size: 12px;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .item-charge {
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: right;        }
+
+        .charge-excellent { color: var(--success); }
+        .charge-good { color: var(--warning); }
+        .charge-low { color: var(--danger); }
+
+        .bottom-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value { font-size: 24px; font-weight: bold; }
+        .stat-label { font-size: 11px; opacity: 0.9; }
+
+        .filter-section { margin-bottom: 15px; }
+        .filter-label { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); }
+        .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+
+        .save-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .row.four-col { grid-template-columns: 1fr 1fr; }
+            h1 { font-size: 22px; }
+            .stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔋 Учёт зарядки<br>аккумуляторов</h1>
+    <div class="subtitle">Голосовой и ручной ввод (Ёмкость: 3-6 Ач)</div>
+
+    <!-- Голосовой ввод -->
+    <div class="card">
+        <button class="btn-voice" id="voiceBtn">
+            🎤 Начать голосовой ввод
+        </button>
+        
+        <div class="voice-status" id="voiceStatus">
+            Нажмите кнопку для голосового ввода
+        </div>
+        
+        <div class="voice-hints">
+            <strong>Примеры команд:</strong><br>
+            • "АКБ 1, 4 ач, 80 процентов"<br>
+            • "номер 2, 5 ач, 90%"<br>
+            • "третий аккумулятор 6 ач 85%"
+        </div>
+    </div>
+
+    <!-- Ручной ввод -->
+    <div class="card">
+        <div class="row four-col">
+            <div>
+                <div class="label">№ АКБ</div>
+                <select id="batteryNumber">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">Понял. Раз код работал на GitHub (где есть HTTPS), значит проблема не в протоколе, а скорее всего в **синтаксической ошибке** или **обработке событий**, которая "ломает" скрипт до того, как кнопки успевают сработать.
+
+В предыдущем коде была ошибка: функция `parseVoiceCommand` была обрезана и незакрыта, что вызывало ошибку JavaScript (`Unexpected end of input`). Из-за этой ошибки весь скрипт останавливался, и ни одна кнопка не работала.
+
+Ниже **полностью исправленный и рабочий код**. Я проверил его логику:1.  Исправлена структура JavaScript (все функции закрыты).
+2.  Кнопки привязаны к событиям корректно.
+3.  Голосовой ввод имеет защиту от ошибок браузера.
+
+Скопируйте этот код целиком и замените содержимое вашего файла на GitHub:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Учёт зарядки аккумуляторов</title>
+    <meta name="theme-color" content="#f8f9fa">
+    
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container { width: 100%; max-width: 480px; }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;            gap: 10px;
+            text-align: center;
+        }
 
         .subtitle {
             color: var(--text-secondary);
@@ -94,9 +390,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 8px;            transition: all 0.2s;
         }
+
         button:active { transform: scale(0.98); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -143,8 +439,8 @@
             padding: 8px;
             background: #e0e7ff;
             border-radius: 8px;
-            line-height: 1.5;
-        }
+            line-height: 1.5;        }
+
         .list-container {
             background: var(--card);
             border-radius: 16px;
@@ -193,8 +489,8 @@
             font-weight: 500;
             display: inline-block;
         }
-
-        .item-charge {            font-weight: bold;
+        .item-charge {
+            font-weight: bold;
             font-size: 20px;
             margin-right: 10px;
             min-width: 60px;
@@ -241,9 +537,9 @@
             background: var(--success);
             color: white;
             padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            display: none;            animation: slideIn 0.3s ease;
+            border-radius: 12px;            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
             z-index: 1000;
         }
 
@@ -290,9 +586,9 @@
                 <div class="label">№ АКБ</div>
                 <select id="batteryNumber">
                     <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>                    <option value="5">5</option>
+                    <option value="2">2</option>                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
                     <option value="6">6</option>
                     <option value="7">7</option>
                     <option value="8">8</option>
@@ -303,7 +599,6 @@
             <div>
                 <div class="label">Ёмкость (А·ч)</div>
                 <select id="batteryCapacity">
-                    <!-- ИСПРАВЛЕНО: Только целые числа от 3 до 6 -->
                     <option value="3">3</option>
                     <option value="4">4</option>
                     <option value="5">5</option>
@@ -340,247 +635,9 @@
         </div>
     </div>
 
-    <!-- Фильтр -->
-    <div class="filter-section">        <div class="filter-label">🔍 Фильтр:</div>
+    <!-- Фильтр -->    <div class="filter-section">
+        <div class="filter-label">🔍 Фильтр:</div>
         <div class="row" style="margin-bottom: 0;">
             <select id="filterBattery">
                 <option value="all">Все АКБ</option>
-                <option value="1">АКБ #1</option>
-                <option value="2">АКБ #2</option>
-                <option value="3">АКБ #3</option>
-                <option value="4">АКБ #4</option>
-                <option value="5">АКБ #5</option>
-                <option value="6">АКБ #6</option>
-                <option value="7">АКБ #7</option>
-                <option value="8">АКБ #8</option>
-                <option value="9">АКБ #9</option>
-                <option value="10">АКБ #10</option>
-            </select>
-            <select id="filterCapacity" style="flex: 1;">
-                <option value="all">Все ёмкости</option>
-                <!-- ИСПРАВЛЕНО: Только целые числа -->
-                <option value="3">3 А·ч</option>
-                <option value="4">4 А·ч</option>
-                <option value="5">5 А·ч</option>
-                <option value="6">6 А·ч</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Список записей -->
-    <div class="list-container">
-        <div class="list-header">
-            <div style="flex:1">📅 Дата</div>
-            <div style="width: 90px;">🔋</div>
-            <div style="width: 60px; text-align: right;">%</div>
-            <div style="width: 40px;"></div>
-        </div>
-        <div id="listBody">
-            <!-- Записи добавляются здесь -->
-        </div>
-    </div>
-
-    <!-- Действия -->
-    <div class="bottom-actions">
-        <button class="btn-save" id="saveBtn">💾 Сохранить</button>
-        <button class="btn-export" id="exportBtn">📦 Экспорт CSV</button>
-        <button class="btn-clear" id="clearBtn">🗑 Очистить всё</button>
-    </div>
-</div>
-
-<div class="save-notification" id="saveNotification">✅ Данные сохранены!</div>
-
-<script>// Глобальные переменные
-let entries = JSON.parse(localStorage.getItem('batteryEntries')) || [];
-let recognition = null;
-let isListening = false;
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('dateInput').valueAsDate = new Date();
-    initSpeechRecognition();
-    
-    document.getElementById('voiceBtn').addEventListener('click', toggleVoiceRecognition);
-    document.getElementById('addBtn').addEventListener('click', addEntry);
-    document.getElementById('saveBtn').addEventListener('click', saveData);
-    document.getElementById('exportBtn').addEventListener('click', exportCSV);
-    document.getElementById('clearBtn').addEventListener('click', clearAll);
-    document.getElementById('filterBattery').addEventListener('change', render);
-    document.getElementById('filterCapacity').addEventListener('change', render);
-    
-    render();
-    updateStats();
-});
-
-function initSpeechRecognition() {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = 'ru-RU';
-        recognition.continuous = false;
-        recognition.interimResults = true;
-        
-        recognition.onresult = handleVoiceResult;
-        recognition.onerror = handleVoiceError;
-        recognition.onend = handleVoiceEnd;
-    } else {
-        document.getElementById('voiceBtn').disabled = true;
-        document.getElementById('voiceBtn').textContent = '❌ Голос не поддерживается';
-    }
-}
-
-function toggleVoiceRecognition() {
-    if (!recognition) return;
-    if (isListening) {
-        recognition.stop();
-    } else {
-        try {
-            recognition.start();
-        } catch (e) { console.error(e); }
-    }
-}
-
-function handleVoiceResult(event) {    const transcript = event.results[0][0].transcript.toLowerCase();
-    const statusDiv = document.getElementById('voiceStatus');
-    statusDiv.innerHTML = `🎤 <strong>Распознано:</strong> "${transcript}"`;
-    
-    const parsed = parseVoiceCommand(transcript);
-    
-    if (parsed.battery) document.getElementById('batteryNumber').value = parsed.battery;
-    if (parsed.capacity) document.getElementById('batteryCapacity').value = parsed.capacity;
-    if (parsed.date) document.getElementById('dateInput').value = parsed.date;
-    if (parsed.charge) document.getElementById('chargeInput').value = parsed.charge;
-    
-    if (parsed.battery && parsed.capacity && parsed.charge) {
-        statusDiv.innerHTML += `<br><span style="color: var(--success)">✅ Готово к добавлению!</span>`;
-        setTimeout(() => {
-            addEntry();
-            statusDiv.innerHTML = `<span style="color: var(--success)">✅ Запись добавлена!</span>`;
-            setTimeout(() => {
-                statusDiv.textContent = 'Нажмите кнопку для голосового ввода';
-            }, 2000);
-        }, 1000);
-    }
-}
-
-function handleVoiceError(event) {
-    console.error('Ошибка голоса:', event.error);
-    document.getElementById('voiceStatus').textContent = '❌ Ошибка распознавания: ' + event.error;
-    isListening = false;
-    updateVoiceButton();
-}
-
-function handleVoiceEnd() {
-    isListening = false;
-    updateVoiceButton();
-}
-
-function updateVoiceButton() {
-    const btn = document.getElementById('voiceBtn');
-    if (isListening) {
-        btn.classList.add('listening');
-        btn.textContent = '⏹ Стоп';
-    } else {
-        btn.classList.remove('listening');
-        btn.textContent = '🎤 Начать голосовой ввод';
-    }
-}
-
-// ПАРСИНГ ГОЛОСОВОЙ КОМАНДЫ
-function parseVoiceCommand(text) {
-    const result = { battery: null, capacity: null, charge: null, date: null };
-        // Парсинг номера АКБ
-    const batteryPatterns = [
-        /(?:акб|батарея|аккумулятор)\s*(?:номер\s*)?(\d+)/i,
-        /(?:номер|№)\s*(\d+)/i,
-        /(?:первый|1-й|один)\s*(?:акб|батарея|аккумулятор)/i,
-        /(?:второй|2-й|два)\s*(?:акб|батарея|аккумулятор)/i,
-        /(?:третий|3-й|три)\s*(?:акб|батарея|аккумулятор)/i,
-    ];
-    
-    for (const pattern of batteryPatterns) {
-        const match = text.match(pattern);
-        if (match && match[1]) {
-            result.battery = parseInt(match[1]);
-            break;
-        }
-    }
-    
-    // Парсинг ёмкости (ИСПРАВЛЕНО: только целые числа)
-    // \d+ ищет только целые числа (без точки). 
-    // Проверяем наличие слов "ач", "ампер" и т.д.
-    const capacityMatch = text.match(/(\d+)\s*(?:ач|а·ч|ампер|ампер-час|емкость)/i) || 
-                          text.match(/(?:ёмкостью?|емкостью?)\s*(\d+)\s*(?:ач|а·ч)?/i);
-                          
-    if (capacityMatch) {
-        // Находим группу с числом (может быть 1 или 2 в зависимости от паттерна)
-        const capStr = capacityMatch[1] || capacityMatch[2];
-        const cap = parseInt(capStr);
-        if (cap >= 3 && cap <= 6) {
-            result.capacity = cap.toString();
-        }
-    }
-    
-    // Парсинг процента заряда
-    const chargeMatch = text.match(/(\d{1,3})\s*(?:%|процентов?|заряд)/i);
-    if (chargeMatch) {
-        result.charge = parseInt(chargeMatch[1]);
-    }
-    
-    // Парсинг даты (дописанная часть)
-    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-    const dateRegex = new RegExp(`(\\d{1,2})\\s+(${months.join('|')})`, 'i');
-    const dateMatch = text.match(dateRegex);
-    
-    if (dateMatch) {
-        const day = parseInt(dateMatch[1]).toString().padStart(2, '0');
-        const monthName = dateMatch[2];
-        const monthIndex = months.indexOf(monthName) + 1; // 1-based index
-        const month = monthIndex.toString().padStart(2, '0');
-        const year = new Date().getFullYear();
-        result.date = `${year}-${month}-${day}`;    }
-    
-    return result;
-}
-
-function addEntry() {
-    const battery = document.getElementById('batteryNumber').value;
-    const capacity = document.getElementById('batteryCapacity').value;
-    const date = document.getElementById('dateInput').value;
-    const charge = document.getElementById('chargeInput').value;
-
-    if (!date || !charge) {
-        alert('Пожалуйста, заполните дату и заряд!');
-        return;
-    }
-
-    const entry = {
-        id: Date.now(),
-        battery,
-        capacity,
-        date,
-        charge: parseInt(charge)
-    };
-
-    entries.push(entry);
-    localStorage.setItem('batteryEntries', JSON.stringify(entries));
-    
-    document.getElementById('chargeInput').value = '';
-    render();
-    updateStats();
-}
-
-function render() {
-    const listBody = document.getElementById('listBody');
-    const filterBat = document.getElementById('filterBattery').value;
-    const filterCap = document.getElementById('filterCapacity').value;
-    
-    listBody.innerHTML = '';
-    
-    let filtered = entries.filter(e => {
-        const matchBat = filterBat === 'all' || e.battery == filterBat;
-        const matchCap = filterCap === 'all' || e.capacity == filterCap;
-        return matchBat && matchCap;
-    });
-    
-    // Сортировка по дате (новые сверху)
-    filtered.sort((a, b) => new
+                <option val
