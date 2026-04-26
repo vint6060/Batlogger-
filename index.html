@@ -112,6 +112,11 @@
             transform: scale(0.98);
         }
 
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .btn-voice {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
@@ -137,7 +142,12 @@
             width: 100%;
         }
 
-        .btn-export, .btn-clear {
+        .btn-save {
+            background: var(--success);
+            color: white;
+            flex: 1;        }
+
+        .btn-export {
             background: #4b5563;
             color: white;
             flex: 1;
@@ -145,7 +155,10 @@
         
         .btn-clear {
             background: var(--danger);
+            color: white;
+            flex: 1;
         }
+
         .voice-status {
             text-align: center;
             color: var(--text-secondary);
@@ -181,8 +194,7 @@
             display: flex;
             font-weight: bold;
             font-size: 14px;
-            background: #f8f9fa;
-        }
+            background: #f8f9fa;        }
 
         .list-item {
             padding: 12px 15px;
@@ -194,7 +206,8 @@
         }
 
         .list-item:hover {
-            background: #f8f9fa;        }
+            background: #f8f9fa;
+        }
 
         .list-item:last-child {
             border-bottom: none;
@@ -231,7 +244,6 @@
             font-weight: 500;
             display: inline-block;
         }
-
         .item-charge {
             font-weight: bold;
             font-size: 20px;
@@ -243,6 +255,7 @@
         .charge-excellent { color: var(--success); }
         .charge-good { color: var(--warning); }
         .charge-low { color: var(--danger); }
+
         .btn-delete {
             background: var(--danger);
             color: white;
@@ -279,8 +292,7 @@
         }
 
         .stat-label {
-            font-size: 11px;
-            opacity: 0.9;
+            font-size: 11px;            opacity: 0.9;
         }
 
         .filter-section {
@@ -293,6 +305,7 @@
             margin-bottom: 8px;
             color: var(--text-secondary);
         }
+
         .label {
             font-size: 12px;
             color: var(--text-secondary);
@@ -300,11 +313,35 @@
             font-weight: 500;
         }
 
+        .save-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         @media (max-width: 480px) {
             .row.four-col {
                 grid-template-columns: 1fr 1fr;
-            }
-            h1 {
+            }            h1 {
                 font-size: 22px;
             }
             .stats {
@@ -321,7 +358,7 @@
 
     <!-- Голосовой ввод -->
     <div class="card">
-        <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceRecognition()">
+        <button class="btn-voice" id="voiceBtn">
             🎤 Начать голосовой ввод
         </button>
         
@@ -341,7 +378,8 @@
     <div class="card">
         <div class="row four-col">
             <div>
-                <div class="label">№ АКБ</div>                <select id="batteryNumber">
+                <div class="label">№ АКБ</div>
+                <select id="batteryNumber">
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -352,8 +390,7 @@
                     <option value="8">8</option>
                     <option value="9">9</option>
                     <option value="10">10</option>
-                </select>
-            </div>
+                </select>            </div>
             <div>
                 <div class="label">Ёмкость (А·ч)</div>
                 <select id="batteryCapacity">
@@ -368,14 +405,14 @@
             </div>
             <div>
                 <div class="label">Дата</div>
-                <input type="date" id="dateInput" placeholder="Дата">
+                <input type="date" id="dateInput">
             </div>
             <div>
                 <div class="label">Заряд (%)</div>
                 <input type="number" id="chargeInput" placeholder="%" min="0" max="100">
             </div>
         </div>
-        <button class="btn-add" onclick="addEntry()" style="margin-top: 10px;">
+        <button class="btn-add" id="addBtn" style="margin-top: 10px;">
             ➕ Добавить запись
         </button>
     </div>
@@ -390,7 +427,8 @@
             <div class="stat-value" id="avgCharge">0%</div>
             <div class="stat-label">Средний заряд</div>
         </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">            <div class="stat-value" id="totalCapacity">0</div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="stat-value" id="totalCapacity">0</div>
             <div class="stat-label">А·ч всего</div>
         </div>
     </div>
@@ -399,10 +437,9 @@
     <div class="filter-section">
         <div class="filter-label">🔍 Фильтр:</div>
         <div class="row" style="margin-bottom: 0;">
-            <select id="filterBattery" onchange="render()">
+            <select id="filterBattery">
                 <option value="all">Все АКБ</option>
-                <option value="1">АКБ #1</option>
-                <option value="2">АКБ #2</option>
+                <option value="1">АКБ #1</option>                <option value="2">АКБ #2</option>
                 <option value="3">АКБ #3</option>
                 <option value="4">АКБ #4</option>
                 <option value="5">АКБ #5</option>
@@ -412,7 +449,7 @@
                 <option value="9">АКБ #9</option>
                 <option value="10">АКБ #10</option>
             </select>
-            <select id="filterCapacity" onchange="render()" style="flex: 1;">
+            <select id="filterCapacity" style="flex: 1;">
                 <option value="all">Все ёмкости</option>
                 <option value="3">3.0 А·ч</option>
                 <option value="3.5">3.5 А·ч</option>
@@ -439,13 +476,20 @@
     </div>
 
     <!-- Действия -->
-    <div class="bottom-actions">        <button class="btn-export" onclick="exportCSV()">
+    <div class="bottom-actions">
+        <button class="btn-save" id="saveBtn">
+            💾 Сохранить
+        </button>
+        <button class="btn-export" id="exportBtn">
             📦 Экспорт CSV
         </button>
-        <button class="btn-clear" onclick="clearAll()">
+        <button class="btn-clear" id="clearBtn">
             🗑 Очистить всё
         </button>
     </div>
+</div>
+<div class="save-notification" id="saveNotification">
+    ✅ Данные сохранены!
 </div>
 
 <script>
@@ -454,12 +498,30 @@ let entries = JSON.parse(localStorage.getItem('batteryEntries')) || [];
 let recognition = null;
 let isListening = false;
 
-// Инициализация
-document.addEventListener('DOMContentLoaded', () => {
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Приложение загружено');
+    
+    // Установка даты по умолчанию
     document.getElementById('dateInput').valueAsDate = new Date();
-    render();
+    
+    // Инициализация распознавания речи
     initSpeechRecognition();
+    
+    // Навешиваем обработчики событий
+    document.getElementById('voiceBtn').addEventListener('click', toggleVoiceRecognition);
+    document.getElementById('addBtn').addEventListener('click', addEntry);
+    document.getElementById('saveBtn').addEventListener('click', saveData);
+    document.getElementById('exportBtn').addEventListener('click', exportCSV);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
+    document.getElementById('filterBattery').addEventListener('change', render);
+    document.getElementById('filterCapacity').addEventListener('change', render);
+    
+    // Первоначальная отрисовка
+    render();
     updateStats();
+    
+    console.log('Обработчики событий активированы');
 });
 
 // Инициализация распознавания речи
@@ -474,22 +536,33 @@ function initSpeechRecognition() {
         recognition.onresult = handleVoiceResult;
         recognition.onerror = handleVoiceError;
         recognition.onend = handleVoiceEnd;
-    } else {
+        
+        console.log('Распознавание речи инициализировано');    } else {
         document.getElementById('voiceBtn').disabled = true;
         document.getElementById('voiceBtn').textContent = '❌ Голосовой ввод не поддерживается';
+        document.getElementById('voiceStatus').textContent = 'Ваш браузер не поддерживает голосовой ввод';
+        console.log('Голосовой ввод не поддерживается');
     }
 }
 
 // Переключение распознавания
 function toggleVoiceRecognition() {
+    console.log('toggleVoiceRecognition вызвана, isListening:', isListening);
+    
     if (!recognition) {
         alert('Ваш браузер не поддерживает голосовой ввод. Используйте Chrome или Safari.');
         return;
     }
     
     if (isListening) {
-        recognition.stop();    } else {
-        recognition.start();
+        recognition.stop();
+    } else {
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error('Ошибка запуска распознавания:', e);
+            alert('Ошибка запуска голосового ввода: ' + e.message);
+        }
     }
 }
 
@@ -513,8 +586,7 @@ function handleVoiceResult(event) {
     if (parsed.date) {
         document.getElementById('dateInput').value = parsed.date;
     }
-    
-    if (parsed.charge) {
+        if (parsed.charge) {
         document.getElementById('chargeInput').value = parsed.charge;
     }
     
@@ -537,7 +609,8 @@ function parseVoiceCommand(text) {
     const result = { battery: null, capacity: null, charge: null, date: null };
     
     // Парсинг номера АКБ
-    const batteryPatterns = [        /(?:акб|батарея|аккумулятор)\s*(?:номер\s*)?(\d+)/i,
+    const batteryPatterns = [
+        /(?:акб|батарея|аккумулятор)\s*(?:номер\s*)?(\d+)/i,
         /(?:номер|№)\s*(\d+)/i,
         /(?:первый|1-й|один)\s*(?:акб|батарея|аккумулятор)/i,
         /(?:второй|2-й|два)\s*(?:акб|батарея|аккумулятор)/i,
@@ -562,8 +635,7 @@ function parseVoiceCommand(text) {
         const match = text.match(pattern);
         if (match && match[1]) {
             const cap = parseFloat(match[1]);
-            if (cap >= 3 && cap <= 6) {
-                result.capacity = cap.toFixed(1).replace(/\.0$/, '');
+            if (cap >= 3 && cap <= 6) {                result.capacity = cap.toFixed(1).replace(/\.0$/, '');
             }
             break;
         }
@@ -577,76 +649,4 @@ function parseVoiceCommand(text) {
     
     // Парсинг даты
     const dateMatch = text.match(/(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)/i);
-    if (dateMatch) {
-        const months = {
-            'января': 0, 'февраля': 1, 'марта': 2, 'апреля': 3, 'мая': 4, 'июня': 5,
-            'июля': 6, 'августа': 7, 'сентября': 8, 'октября': 9, 'ноября': 10, 'декабря': 11
-        };
-        const day = parseInt(dateMatch[1]);
-        const month = months[dateMatch[2].toLowerCase()];
-        const year = new Date().getFullYear();
-        const dateObj = new Date(year, month, day);
-        const yyyy = dateObj.getFullYear();        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dd = String(dateObj.getDate()).padStart(2, '0');
-        result.date = `${yyyy}-${mm}-${dd}`;
-    }
-    
-    return result;
-}
-
-function handleVoiceError(event) {
-    console.error('Ошибка распознавания:', event.error);
-    const statusDiv = document.getElementById('voiceStatus');
-    statusDiv.innerHTML = `<span style="color: var(--danger)">❌ Ошибка: ${event.error}</span>`;
-    resetVoiceButton();
-}
-
-function handleVoiceEnd() {
-    resetVoiceButton();
-}
-
-function resetVoiceButton() {
-    isListening = false;
-    const btn = document.getElementById('voiceBtn');
-    btn.classList.remove('listening');
-    btn.textContent = '🎤 Начать голосовой ввод';
-}
-
-// Добавление записи
-function addEntry() {
-    const date = document.getElementById('dateInput').value;
-    const charge = document.getElementById('chargeInput').value;
-    const battery = document.getElementById('batteryNumber').value;
-    const capacity = document.getElementById('batteryCapacity').value;
-
-    if (!date || !charge) {
-        alert('Пожалуйста, заполните дату и заряд');
-        return;
-    }
-
-    const newEntry = {
-        id: Date.now(),
-        date: date,
-        charge: parseInt(charge),
-        battery: parseInt(battery),
-        capacity: parseFloat(capacity),
-        createdAt: new Date().toISOString()
-    };
-
-    entries.push(newEntry);
-    saveAndRender();
-        document.getElementById('chargeInput').value = '';
-    
-    const btn = document.querySelector('.btn-add');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✅ Добавлено!';
-    btn.style.background = 'var(--success)';
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = '';
-    }, 1000);
-}
-
-// Удаление записи
-function deleteEntry(index) {
-    if 
+    if (dateMatch) 
