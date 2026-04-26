@@ -1,1 +1,811 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Учёт зарядки аккумуляторов</title>
+    <meta name="theme-color" content="#f8f9fa">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQmF0dGVyeVRyYWNrZXIiLCJzaG9ydF9uYW1lIjoiQmF0dGVyeVRyYWNrZXIiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2Y4ZjlmYSIsInRoZW1lX2NvbG9yIjoiIzEwNzRmMiJ9">
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 5px;            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .battery-manager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .battery-count {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .battery-count-badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 8px;        }
+
+        .btn-add-battery {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-remove-battery {
+            background: var(--danger);
+            color: white;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .row.three-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        select, input {
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #fff;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-voice {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .btn-voice.listening {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-export, .btn-clear {
+            background: #4b5563;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-clear {
+            background: var(--danger);
+        }
+
+        .voice-status {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 10px;
+            min-height: 40px;
+            padding: 8px;
+            background: #f8f9fa;            border-radius: 8px;
+            font-style: italic;
+        }
+
+        .voice-hints {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            padding: 8px;
+            background: #e0e7ff;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .list-container {
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .list-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            font-weight: bold;
+            font-size: 16px;
+            background: #f8f9fa;
+        }
+
+        .list-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .list-item:hover {
+            background: #f8f9fa;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+        .item-date {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .item-battery {
+            font-size: 12px;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        .item-charge {
+            font-weight: bold;
+            color: var(--success);
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .charge-excellent { color: var(--success); }
+        .charge-good { color: var(--warning); }
+        .charge-low { color: var(--danger); }
+
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .bottom-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .filter-section {
+            margin-bottom: 15px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 480px) {
+            .row.three-col {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔋 Учёт зарядки<br>аккумуляторов</h1>
+    <div class="subtitle">Голосовой и ручной ввод с выбором номера АКБ</div>
+
+    <!-- Управление количеством АКБ -->
+    <div class="card">
+        <div class="battery-manager">
+            <div class="battery-count">
+                <span>📦 Количество АКБ:</span>                <span class="battery-count-badge" id="batteryCountBadge">3</span>
+            </div>
+            <div>
+                <button class="btn-small btn-remove-battery" onclick="changeBatteryCount(-1)" id="btnRemoveBattery" title="Уменьшить">−</button>
+                <button class="btn-small btn-add-battery" onclick="changeBatteryCount(1)" title="Добавить">+</button>
+            </div>
+        </div>
+
+        <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceRecognition()">
+            🎤 Начать голосовой ввод
+        </button>
+        
+        <div class="voice-status" id="voiceStatus">
+            Нажмите кнопку для голосового ввода
+        </div>
+        
+        <div class="voice-hints">
+            <strong>Примеры команд:</strong><br>
+            • "первый аккумулятор 80 процентов"<br>
+            • "АКБ 2, 90%"<br>
+            • "третий 85"<br>
+            • "батарея 1, 20 апреля, 75%"
+        </div>
+    </div>
+
+    <!-- Ручной ввод -->
+    <div class="card">
+        <div class="row three-col">
+            <select id="batterySelect">
+                <!-- Заполняется динамически -->
+            </select>
+            <input type="date" id="dateInput" placeholder="Дата">
+            <input type="number" id="chargeInput" placeholder="Заряд %" min="0" max="100">
+        </div>
+        <button class="btn-add" onclick="addEntry()">
+            ➕ Добавить запись
+        </button>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="totalEntries">0</div>
+            <div class="stat-label">Всего записей</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="stat-value" id="totalBatteries">3</div>
+            <div class="stat-label">Аккумуляторов</div>
+        </div>
+    </div>
+    <!-- Фильтр -->
+    <div class="filter-section">
+        <div class="filter-label">🔍 Фильтр по аккумулятору:</div>
+        <select id="filterBattery" onchange="render()">
+            <option value="all">Все АКБ</option>
+            <!-- Заполняется динамически -->
+        </select>
+    </div>
+
+    <!-- Список записей -->
+    <div class="list-container">
+        <div class="list-header">
+            <div style="flex:1">📅 Дата</div>
+            <div style="width: 70px;">🔋</div>
+            <div style="width: 40px;"></div>
+        </div>
+        <div id="listBody">
+            <!-- Записи добавляются здесь -->
+        </div>
+    </div>
+
+    <!-- Действия -->
+    <div class="bottom-actions">
+        <button class="btn-export" onclick="exportCSV()">
+            📦 Экспорт CSV
+        </button>
+        <button class="btn-clear" onclick="clearAll()">
+            🗑 Очистить всё
+        </button>
+    </div>
+</div>
+
+<script>
+// Глобальные переменные
+let entries = JSON.parse(localStorage.getItem('batteryEntries')) || [];
+let batteryCount = parseInt(localStorage.getItem('batteryCount')) || 3;
+let recognition = null;
+let isListening = false;
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('dateInput').valueAsDate = new Date();
+    updateBatterySelect();
+    render();
+    initSpeechRecognition();
+});
+
+// Изменение количества АКБ
+function changeBatteryCount(delta) {    const newCount = batteryCount + delta;
+    if (newCount < 1) {
+        alert('Минимальное количество АКБ: 1');
+        return;
+    }
+    if (newCount > 20) {
+        alert('Максимальное количество АКБ: 20');
+        return;
+    }
+    batteryCount = newCount;
+    localStorage.setItem('batteryCount', batteryCount);
+    updateBatterySelect();
+    render();
+}
+
+// Обновление селекторов АКБ
+function updateBatterySelect() {
+    const batterySelect = document.getElementById('batterySelect');
+    const filterBattery = document.getElementById('filterBattery');
+    const batteryCountBadge = document.getElementById('batteryCountBadge');
+    const totalBatteries = document.getElementById('totalBatteries');
+    const btnRemoveBattery = document.getElementById('btnRemoveBattery');
+    
+    batteryCountBadge.textContent = batteryCount;
+    totalBatteries.textContent = batteryCount;
+    btnRemoveBattery.disabled = batteryCount <= 1;
+    btnRemoveBattery.style.opacity = batteryCount <= 1 ? '0.5' : '1';
+    
+    // Сохраняем текущее значение
+    const currentValue = batterySelect.value;
+    const filterValue = filterBattery.value;
+    
+    // Обновляем основной селектор
+    batterySelect.innerHTML = '';
+    for (let i = 1; i <= batteryCount; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `АКБ #${i}`;
+        batterySelect.appendChild(option);
+    }
+    
+    // Восстанавливаем значение если возможно
+    if (currentValue <= batteryCount) {
+        batterySelect.value = currentValue;
+    }
+    
+    // Обновляем фильтр
+    filterBattery.innerHTML = '<option value="all">Все АКБ</option>';
+    for (let i = 1; i <= batteryCount; i++) {
+        const option = document.createElement('option');        option.value = i;
+        option.textContent = `АКБ #${i}`;
+        filterBattery.appendChild(option);
+    }
+    
+    if (filterValue <= batteryCount) {
+        filterBattery.value = filterValue;
+    }
+}
+
+// Инициализация распознавания речи
+function initSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ru-RU';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        
+        recognition.onresult = handleVoiceResult;
+        recognition.onerror = handleVoiceError;
+        recognition.onend = handleVoiceEnd;
+    } else {
+        document.getElementById('voiceBtn').disabled = true;
+        document.getElementById('voiceBtn').textContent = '❌ Голосовой ввод не поддерживается';
+    }
+}
+
+// Переключение распознавания
+function toggleVoiceRecognition() {
+    if (!recognition) {
+        alert('Ваш браузер не поддерживает голосовой ввод. Используйте Chrome или Safari.');
+        return;
+    }
+    
+    if (isListening) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+}
+
+// Обработка результата голосового ввода
+function handleVoiceResult(event) {
+    const transcript = event.results[0][0].transcript.toLowerCase();
+    const statusDiv = document.getElementById('voiceStatus');
+    statusDiv.innerHTML = `🎤 <strong>Распознано:</strong> "${transcript}"`;
+    
+    // Парсим голосовую команду
+    const parsed = parseVoiceCommand(transcript);    
+    if (parsed.battery) {
+        if (parsed.battery <= batteryCount) {
+            document.getElementById('batterySelect').value = parsed.battery;
+        } else {
+            statusDiv.innerHTML += `<br><span style="color: var(--danger)">⚠️ АКБ #${parsed.battery} не существует (макс: ${batteryCount})</span>`;
+        }
+    }
+    
+    if (parsed.date) {
+        document.getElementById('dateInput').value = parsed.date;
+    }
+    
+    if (parsed.charge) {
+        document.getElementById('chargeInput').value = parsed.charge;
+    }
+    
+    if (parsed.battery && parsed.charge) {
+        statusDiv.innerHTML += `<br><span style="color: var(--success)">✅ Готово к добавлению!</span>`;
+        // Автоматически добавляем через 1 секунду
+        setTimeout(() => {
+            if (parsed.battery && parsed.charge) {
+                addEntry();
+                statusDiv.innerHTML = `<span style="color: var(--success)">✅ Запись добавлена!</span>`;
+                setTimeout(() => {
+                    statusDiv.textContent = 'Нажмите кнопку для голосового ввода';
+                }, 2000);
+            }
+        }, 1000);
+    }
+}
+
+// Парсинг голосовой команды
+function parseVoiceCommand(text) {
+    const result = { battery: null, charge: null, date: null };
+    
+    // Парсинг номера АКБ
+    const batteryPatterns = [
+        /(?:акб|батарея|аккумулятор)\s*(?:номер\s*)?(\d+)/i,
+        /(?:первый|1-й|один)\s*(?:акб|батарея|аккумулятор)/i,
+        /(?:второй|2-й|два)\s*(?:акб|батарея|аккумулятор)/i,
+        /(?:третий|3-й|три)\s*(?:акб|батарея|аккумулятор)/i,
+        /(?:четвертый|4-й|четыре)\s*(?:акб|батарея|аккумулятор)/i,
+        /(?:пятый|5-й|пять)\s*(?:акб|батарея|аккумулятор)/i,
+    ];
+    
+    for (const pattern of batteryPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            if (match[1]) {                result.battery = parseInt(match[1]);
+            } else {
+                // Определяем по порядковому номеру
+                const ordinals = {
+                    'первый': 1, '1-й': 1, 'один': 1,
+                    'второй': 2, '2-й': 2, 'два': 2,
+                    'третий': 3, '3-й': 3, 'три': 3,
+                    'четвертый': 4, '4-й': 4, 'четыре': 4,
+                    'пятый': 5, '5-й': 5, 'пять': 5,
+                };
+                for (const [word, num] of Object.entries(ordinals)) {
+                    if (text.includes(word)) {
+                        result.battery = num;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+    }
+    
+    // Если не нашли явного указания АКБ, ищем просто число в начале
+    if (!result.battery) {
+        const simpleBattery = text.match(/^(\d+)[\s,]/);
+        if (simpleBattery && parseInt(simpleBattery[1]) <= 10) {
+            result.battery = parseInt(simpleBattery[1]);
+        }
+    }
+    
+    // Парсинг процента заряда
+    const chargeMatch = text.match(/(\d{1,3})\s*(?:%|процентов?|заряд)/i);
+    if (chargeMatch) {
+        result.charge = parseInt(chargeMatch[1]);
+    }
+    
+    // Парсинг даты (упрощённый)
+    const dateMatch = text.match(/(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)/i);
+    if (dateMatch) {
+        const months = {
+            'января': 0, 'февраля': 1, 'марта': 2, 'апреля': 3, 'мая': 4, 'июня': 5,
+            'июля': 6, 'августа': 7, 'сентября': 8, 'октября': 9, 'ноября': 10, 'декабря': 11
+        };
+        const day = parseInt(dateMatch[1]);
+        const month = months[dateMatch[2].toLowerCase()];
+        const year = new Date().getFullYear();
+        const dateObj = new Date(year, month, day);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        result.date = `${yyyy}-${mm}-${dd}`;    }
+    
+    return result;
+}
+
+function handleVoiceError(event) {
+    console.error('Ошибка распознавания:', event.error);
+    const statusDiv = document.getElementById('voiceStatus');
+    statusDiv.innerHTML = `<span style="color: var(--danger)">❌ Ошибка: ${event.error}</span>`;
+    resetVoiceButton();
+}
+
+function handleVoiceEnd() {
+    resetVoiceButton();
+}
+
+function resetVoiceButton() {
+    isListening = false;
+    const btn = document.getElementById('voiceBtn');
+    btn.classList.remove('listening');
+    btn.textContent = '🎤 Начать голосовой ввод';
+}
+
+// Добавление записи
+function addEntry() {
+    const date = document.getElementById('dateInput').value;
+    const charge = document.getElementById('chargeInput').value;
+    const battery = document.getElementById('batterySelect').value;
+
+    if (!date || !charge) {
+        alert('Пожалуйста, заполните дату и заряд');
+        return;
+    }
+
+    const newEntry = {
+        id: Date.now(),
+        date: date,
+        charge: parseInt(charge),
+        battery: parseInt(battery),
+        createdAt: new Date().toISOString()
+    };
+
+    entries.push(newEntry);
+    saveAndRender();
+    
+    // Очищаем только заряд, оставляем дату и АКБ
+    document.getElementById('chargeInput').value = '';
+    
+    // Визуальная обратная связь
+    const btn = document.querySelector('.btn-add');    const originalText = btn.innerHTML;
+    btn.innerHTML = '✅ Добавлено!';
+    btn.style.background = 'var(--success)';
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = '';
+    }, 1000);
+}
+
+// Удаление записи
+function deleteEntry(index) {
+    if (confirm('Удалить эту запись?')) {
+        entries.splice(index, 1);
+        saveAndRender();
+    }
+}
+
+// Очистка всех записей
+function clearAll() {
+    if (entries.length === 0) {
+        alert('Нет записей для удаления');
+        return;
+    }
+    if (confirm(`Удалить ВСЕ записи (${entries.length} шт.)?`)) {
+        entries = [];
+        saveAndRender();
+    }
+}
+
+// Сохранение и отображение
+function saveAndRender() {
+    localStorage.setItem('batteryEntries', JSON.stringify(entries));
+    render();
+}
+
+// Отображение списка
+function render() {
+    const listBody = document.getElementById('listBody');
+    const filterBattery = document.getElementById('filterBattery');
+    const totalEntries = document.getElementById('totalEntries');
+    
+    listBody.innerHTML = '';
+    
+    let filteredEntries = [...entries];
+    
+    // Применяем фильтр
+    if (filterBattery.value !== 'all') {
+        filteredEntries = filteredEntries.filter(e => e.battery === parseInt(filterBattery.value));
+    }
+        // Сортировка: новые сверху
+    filteredEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    totalEntries.textContent = filteredEntries.length;
+
+    if (filteredEntries.length === 0) {
+        listBody.innerHTML = `
+            <div style="padding: 30px; text-align: center; color: var(--text-secondary);">
+                📭 Нет записей<br>
+                <small>Добавьте первую запись вручную или голосом</small>
+            </div>
+        `;
+        return;
+    }
+
+    filteredEntries.forEach((entry) => {
+        const originalIndex = entries.indexOf(entry);
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        
+        const dateObj = new Date(entry.date);
+        const dateStr = dateObj.toLocaleDateString('ru-RU', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric' 
+        });
+        
+        // Определяем цвет заряда
+        let chargeClass = 'charge-excellent';
+        if (entry.charge < 50) chargeClass = 'charge-low';
+        else if (entry.charge < 80) chargeClass = 'charge-good';
+        
+        div.innerHTML = `
+            <div class="item-info">
+                <div class="item-date">
+                    ${dateStr}
+                    <span class="item-battery">АКБ #${entry.battery}</span>
+                </div>
+            </div>
+            <div class="item-charge ${chargeClass}">${entry.charge}%</div>
+            <button class="btn-delete" onclick="deleteEntry(${originalIndex})" title="Удалить">🗑</button>
+        `;
+        listBody.appendChild(div);
+    });
+}
+
+// Экспорт в CSV
+function exportCSV() {
+    if (entries.length === 0) {
+        alert('Нет данных для экспорта');        return;
+    }
+
+    let csvContent = "\uFEFFДата;Номер АКБ;Заряд;Дата создания\n";
+
+    entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    entries.forEach(e => {
+        const createdDate = e.createdAt ? new Date(e.createdAt).toLocaleString('ru-RU') : '';
+        csvContent += `${e.date};${e.battery};${e.charge}%;${createdDate}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `battery_log_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
