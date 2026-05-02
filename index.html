@@ -15,14 +15,16 @@
             --card-bg: rgba(10, 15, 30, 0.65); 
             --text-main: #e2e8f0;     
             --text-sec: #94a3b8;      
-            --accent-cyan: #06b6d4;   /* Неоновый голубой */
-            --accent-purple: #8b5cf6; /* Неоновый фиолетовый */
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
             --accent-green: #10b981;  
             --danger: #ef4444;        
             --radius: 12px;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             --glass-border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -34,27 +36,29 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            box-sizing: border-box;
             overflow-x: hidden; 
         }
 
-        /* --- ФОНОВАЯ АНИМАЦИЯ (CANVAS) --- */
+        /* === CANVAS BACKGROUND === */
         #battery-canvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: -1; 
-            /* Глубокий космический градиент */
-            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 40%, #000000 100%);        }
-
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 40%, #000000 100%);
+        }
         .container { 
             width: 100%; 
             max-width: 500px; 
             margin: 0 auto;
             position: relative;
             z-index: 1; 
+            opacity: 0;
+            animation: fadeInContent 0.6s ease-out 2.3s forwards;
+        }
+
+        @keyframes fadeInContent {
+            to { opacity: 1; }
         }
 
         h1 { 
@@ -64,7 +68,7 @@
             text-align: center; 
             letter-spacing: -0.5px;
             color: white;
-            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6); /* Фиолетовое свечение */
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
         }
         .subtitle { 
             text-align: center; 
@@ -83,9 +87,7 @@
             box-shadow: var(--shadow);
             margin-bottom: 20px;
             border-left: 3px solid var(--accent-purple);
-            border-top: var(--glass-border);
-            border-right: var(--glass-border);
-            border-bottom: var(--glass-border);
+            border: var(--glass-border);
         }
 
         /* Кнопка микрофона */
@@ -94,9 +96,9 @@
             color: white; 
             border: none;
             padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;            cursor: pointer;
+            border-radius: 12px;            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
             width: 100%;
             display: flex;
             align-items: center;
@@ -143,9 +145,9 @@
         .batt-checkbox { display: none; }
 
         .batt-label {
-            padding: 10px 5px;
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid #334155;            border-radius: 10px;
+            padding: 10px 5px;            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid #334155;
+            border-radius: 10px;
             text-align: center;
             cursor: pointer;
             font-weight: 600;
@@ -190,11 +192,14 @@
         }
         
         input:focus { border-color: #8b5cf6; background: rgba(2, 6, 23, 0.9); }
-
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
         /* Основные кнопки действий */
         button.btn-add { 
             background: linear-gradient(135deg, #10b981, #059669);
-            color: white;             border: none;
+            color: white;
+            border: none;
             padding: 14px;
             border-radius: 12px;
             font-size: 16px;
@@ -232,18 +237,16 @@
             border-radius: var(--radius); 
             overflow: hidden; 
             box-shadow: var(--shadow); 
+            border: var(--glass-border);
             border-left: 3px solid var(--accent-purple);
-            border-top: var(--glass-border);
-            border-right: var(--glass-border);
-            border-bottom: var(--glass-border);
         }
         
         .list-header { 
             padding: 15px 20px; 
-            background: rgba(2, 6, 23, 0.8); 
-            border-bottom: 1px solid #1e293b; 
+            background: rgba(2, 6, 23, 0.8);             border-bottom: 1px solid #1e293b; 
             font-weight: 700; 
-            font-size: 14px;             color: var(--text-sec); 
+            font-size: 14px;
+            color: var(--text-sec); 
             display: flex; 
             justify-content: space-between;
             text-transform: uppercase;
@@ -257,30 +260,19 @@
             align-items: center;
             gap: 15px;
             transition: background 0.2s;
-            
             animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
             transform: translateY(10px);
         }
         
         @keyframes slideInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .list-item:last-child { border-bottom: none; }
-        
         .item-info { flex: 1; }
         .item-date { font-weight: 600; font-size: 15px; color: var(--text-main); }
-        
-        .item-meta { 
-            margin-top: 4px; 
-            display: flex; 
-            gap: 8px; 
-            align-items: center; 
-        }
+        .item-meta { margin-top: 4px; display: flex; gap: 8px; align-items: center; }
         
         .badge { 
             padding: 3px 8px; 
@@ -292,15 +284,15 @@
             background: rgba(139, 92, 246, 0.2); 
             color: #c4b5fd; 
             border: 1px solid rgba(139, 92, 246, 0.3);
-        }        .badge-cycle { 
+        }
+        .badge-cycle { 
             background: rgba(6, 182, 212, 0.2); 
             color: #67e8f9;
             border: 1px solid rgba(6, 182, 212, 0.3);
         }
         
         .item-charge { 
-            font-weight: 800; 
-            color: #34d399; 
+            font-weight: 800;             color: #34d399; 
             font-size: 20px; 
             min-width: 60px; 
             text-align: right; 
@@ -315,6 +307,7 @@
             padding: 5px;
             width: auto;
             margin: 0;
+            cursor: pointer;
         }
         .btn-delete:hover { color: var(--danger); }
 
@@ -341,15 +334,232 @@
             gap: 8px;
             border: 1px solid rgba(139, 92, 246, 0.3);
         }
-        .toast.show {             opacity: 1; 
+        .toast.show { 
+            opacity: 1; 
             visibility: visible; 
             transform: translateX(-50%) translateY(0); 
         }
+
+        /* === SPLASH SCREEN: Эффект проваливания === */
+        .splash-screen {            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, #1e1b4b 0%, #0f172a 40%, #000000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            overflow: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            animation: contentFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes contentFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Батарея-портал */
+        .battery-portal {
+            position: relative;
+            width: 120px;
+            height: 200px;
+            margin: 0 auto 30px;
+            cursor: default;
+        }
+
+        .battery-outline {
+            position: absolute;
+            width: 100%;
+            height: 90%;
+            bottom: 0;
+            border: 4px solid var(--accent-purple);
+            border-radius: 12px;
+            box-sizing: border-box;
+            box-shadow: 
+                0 0 30px rgba(139, 92, 246, 0.6),
+                inset 0 0 20px rgba(139, 92, 246, 0.2);            animation: pulse-border 2s ease-in-out infinite;
+        }
+
+        .battery-outline::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            background: var(--accent-purple);
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+        }
+
+        .battery-fill {
+            position: absolute;
+            width: calc(100% - 16px);
+            height: 0%;
+            bottom: 8px;
+            left: 8px;
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 8px;
+            animation: fillBattery 1.5s ease-out forwards;
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.7);
+        }
+
+        @keyframes fillBattery { to { height: 85%; } }
+
+        @keyframes pulse-border {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 30px rgba(139, 92, 246, 0.6),
+                    inset 0 0 20px rgba(139, 92, 246, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 50px rgba(139, 92, 246, 0.9),
+                    inset 0 0 30px rgba(139, 92, 246, 0.4);
+            }
+        }
+
+        .battery-glow {
+            position: absolute;
+            width: 100%;
+            height: 90%;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+            border-radius: 12px;            animation: glowPulse 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .portal-particles {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px; height: 300px;
+            pointer-events: none;
+        }
+
+        .portal-particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleFall 1.2s ease-out forwards;
+        }
+
+        @keyframes particleFall {
+            0% { opacity: 1; transform: translateY(-50px) scale(1); }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(250px) scale(0.3); }
+        }
+
+        .splash-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .splash-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .splash-subtitle {
+            font-size: 13px;
+            color: var(--text-sec);
+        }
+        .splash-subtitle::after {
+            content: '';
+            animation: dots 1.5s steps(4) infinite;
+        }
+
+        @keyframes dots {
+            0%, 25% { content: ''; }
+            50% { content: '.'; }
+            75% { content: '..'; }
+            100% { content: '...'; }
+        }
+
+        .fall-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(2, 2, 4, 0.9) 80%, #000 100%);
+            opacity: 0;
+            animation: fallZoom 0.8s 1.5s ease-in forwards;
+            pointer-events: none;
+        }
+
+        @keyframes fallZoom {
+            0% { opacity: 0; transform: scale(1); }
+            100% { opacity: 1; transform: scale(3); }
+        }
+
+        .splash-screen.falling .splash-content {
+            animation: fallThroughContent 0.8s 1.5s ease-in forwards !important;
+        }
+
+        @keyframes fallThroughContent {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(100vh) scale(0.3); }
+        }
+
+        @media (max-width: 400px) {
+            .battery-portal { width: 100px; height: 170px; }
+            .splash-title { font-size: 18px; }
+        }
+
+        /* Отключение анимаций для пользователей с prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .splash-screen { transition: none !important; }        }
     </style>
 </head>
 <body>
 
-<!-- Канвас для анимации -->
+<!-- SplashScreen: Эффект проваливания -->
+<div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+        <div class="battery-portal">
+            <div class="battery-outline"></div>
+            <div class="battery-fill"></div>
+            <div class="battery-glow"></div>
+            <div class="portal-particles" id="portalParticles"></div>
+        </div>
+        <div class="splash-text">
+            <span class="splash-title">Battery Tracker</span>
+            <span class="splash-subtitle">Загрузка</span>
+        </div>
+    </div>
+    <div class="fall-overlay"></div>
+</div>
+
+<!-- Канвас для анимации фона -->
 <canvas id="battery-canvas"></canvas>
 
 <div class="container">
@@ -367,30 +577,25 @@
         <div class="battery-selector">
             <input type="checkbox" id="chk1" class="batt-checkbox" value="1" checked>
             <label for="chk1" class="batt-label">АКБ 1</label>
-
             <input type="checkbox" id="chk2" class="batt-checkbox" value="2">
             <label for="chk2" class="batt-label">АКБ 2</label>
-
             <input type="checkbox" id="chk3" class="batt-checkbox" value="3">
             <label for="chk3" class="batt-label">АКБ 3</label>
-
             <input type="checkbox" id="chk4" class="batt-checkbox" value="4">
             <label for="chk4" class="batt-label">АКБ 4</label>
         </div>
 
         <!-- Поля даты и заряда -->
-        <div class="row">
-            <input type="date" id="dateInput">
+        <div class="row">            <input type="date" id="dateInput">
             <input type="number" id="chargeInput" placeholder="Заряд %" min="0" max="100">
         </div>
 
-        <button class="btn-add" onclick="manualAddEntry()">
-            Добавить запись
-        </button>
+        <button class="btn-add" onclick="manualAddEntry()">Добавить запись</button>
         
         <div class="actions-row">
             <button class="btn-secondary btn-export" onclick="exportCSV()">📥 CSV</button>
-            <button class="btn-secondary btn-clear" onclick="clearAll()">Очистить всё</button>        </div>
+            <button class="btn-secondary btn-clear" onclick="clearAll()">Очистить всё</button>
+        </div>
     </div>
 
     <div class="list-container">
@@ -405,18 +610,17 @@
 <div id="toast" class="toast">✅ Успешно добавлено</div>
 
 <script>
-    // --- АНИМАЦИЯ: КОСМИЧЕСКОЕ ЯДРО (MILKY WAY) ---
+    // ============================================
+    // 🌌 CANVAS: Космический фон (Milky Way)
+    // ============================================
     const canvas = document.getElementById('battery-canvas');
     const ctx = canvas.getContext('2d');
+    let width, height, particles = [];
     
-    let width, height;
-    let particles = [];
-    
-    // Настройки галактики
     const config = {
-        particleCount: 200,     // Много звезд для плотности
-        rotationSpeed: 0.002,   // Скорость вращения галактики
-        trailOpacity: 0.1       // Длина хвостов (меньше = длиннее)
+        particleCount: 200,
+        rotationSpeed: 0.002,
+        trailOpacity: 0.1
     };
 
     function resize() {
@@ -426,99 +630,51 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // Класс Звезды/Частицы
     class Star {
-        constructor() {
-            this.reset(true);
-        }
-
+        constructor() { this.reset(true); }
         reset(initial = false) {
-            // Распределяем частицы в виде спирали/диска
-            // Радиус от центра
             this.radius = Math.random() * (Math.max(width, height) / 1.5);
-            
-            // Угол
             this.angle = Math.random() * Math.PI * 2;
-                        // Скорость вращения зависит от расстояния (ближе к центру - быстрее)
-            // Добавляем немного случайности для реалистичности
-            this.speed = (config.rotationSpeed * (1000 / (this.radius + 100))) * (0.8 + Math.random() * 0.4);
-            
-            // Размер зависит от близости к центру (в центре ярче и крупнее)
-            const centerFactor = 1 - (this.radius / (Math.max(width, height) / 1.5));
+            this.speed = (config.rotationSpeed * (1000 / (this.radius + 100))) * (0.8 + Math.random() * 0.4);            const centerFactor = 1 - (this.radius / (Math.max(width, height) / 1.5));
             this.size = Math.random() * (1 + centerFactor * 2);
-            
-            // Цвет: в центре белые/желтые, на краях синие/фиолетовые
             if (centerFactor > 0.7) {
-                this.color = `rgba(255, 255, 255, ${0.5 + Math.random() * 0.5})`; // Белый центр
+                this.color = `rgba(255, 255, 255, ${0.5 + Math.random() * 0.5})`;
             } else if (centerFactor > 0.3) {
-                this.color = `rgba(139, 92, 246, ${0.4 + Math.random() * 0.4})`; // Фиолетовый средний
+                this.color = `rgba(139, 92, 246, ${0.4 + Math.random() * 0.4})`;
             } else {
-                this.color = `rgba(6, 182, 212, ${0.2 + Math.random() * 0.3})`; // Голубой край
+                this.color = `rgba(6, 182, 212, ${0.2 + Math.random() * 0.3})`;
             }
         }
-
-        update() {
-            // Вращаем частицу
-            this.angle += this.speed;
-        }
-
+        update() { this.angle += this.speed; }
         draw() {
-            const centerX = width / 2;
-            const centerY = height / 2;
-            
-            // Переводим полярные координаты в декартовы
+            const centerX = width / 2, centerY = height / 2;
             const x = centerX + Math.cos(this.angle) * this.radius;
             const y = centerY + Math.sin(this.angle) * this.radius;
-
             ctx.beginPath();
             ctx.arc(x, y, this.size, 0, Math.PI * 2);
             ctx.fillStyle = this.color;
-            
-            // Добавляем свечение только для крупных центральных звезд
-            if (this.size > 1.5) {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
-            } else {
-                ctx.shadowBlur = 0;
-            }
-            
+            if (this.size > 1.5) { ctx.shadowBlur = 10; ctx.shadowColor = this.color; }
+            else { ctx.shadowBlur = 0; }
             ctx.fill();
         }
     }
 
-    // Создаем массив звезд
-    for(let i = 0; i < config.particleCount; i++) {
-        particles.push(new Star());    }
+    for(let i = 0; i < config.particleCount; i++) particles.push(new Star());
 
-    // Главный цикл анимации
     function animate() {
-        // Эффект шлейфа без мигания
         ctx.fillStyle = `rgba(2, 2, 4, ${config.trailOpacity})`;
         ctx.fillRect(0, 0, width, height);
-        
-        // Рисуем звезды
-        particles.forEach(p => {
-            p.update();
-            p.draw();
-        });
-
+        particles.forEach(p => { p.update(); p.draw(); });
         requestAnimationFrame(animate);
     }
     animate();
 
 
-    // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
-    document.getElementById('dateInput').valueAsDate = new Date();
+    // ============================================
+    // 📱 ЛОГИКА ПРИЛОЖЕНИЯ
+    // ============================================
     
     let entries = [];
-    try {
-        const storedData = localStorage.getItem('batteryEntriesPro');
-        if (storedData) {
-            const parsed = JSON.parse(storedData);
-            if (Array.isArray(parsed)) entries = parsed;
-        }
-    } catch (e) { console.error(e); }
-
     const months = {
         'января': 0, 'февраля': 1, 'марта': 2, 'апреля': 3, 'мая': 4, 'июня': 5,
         'июля': 6, 'августа': 7, 'сентября': 8, 'октября': 9, 'ноября': 10, 'декабря': 11
@@ -528,15 +684,24 @@
         'первый': 1, 'первую': 1, 'один': 1, 'единицу': 1, 'первое': 1,
         'второй': 2, 'вторую': 2, 'два': 2, 'двойку': 2, 'второе': 2,
         'третий': 3, 'тройку': 3, 'три': 3, 'третье': 3,
-        'четвертый': 4, 'четверку': 4, 'четыре': 4, 'четвёртую': 4
-    };
+        'четвертый': 4, 'четверку': 4, 'четыре': 4, 'четвёртую': 4    };
 
+    // === Toast уведомления ===
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.borderColor = type === 'error' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(139, 92, 246, 0.3)';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // === Рендер списка ===
     function render() {
         const listBody = document.getElementById('listBody');
         listBody.innerHTML = '';
-        
         entries.sort((a, b) => new Date(b.date) - new Date(a.date));
         document.getElementById('totalCount').innerText = entries.length;
+        
         let cycleCounters = {};
         entries.forEach(e => {
             const battKey = String(e.battery);
@@ -569,17 +734,19 @@
             listBody.appendChild(div);
         });
     }
-
+    // === Сохранение в localStorage ===
     function saveData() {
         localStorage.setItem('batteryEntriesPro', JSON.stringify(entries));
         render();
     }
 
+    // === Получить выбранные батареи ===
     function getSelectedBatteries() {
         const checkboxes = document.querySelectorAll('.batt-checkbox:checked');
         return Array.from(checkboxes).map(cb => cb.value);
     }
 
+    // === Ручное добавление записи ===
     function manualAddEntry() {
         const date = document.getElementById('dateInput').value;
         const chargeVal = document.getElementById('chargeInput').value;
@@ -587,197 +754,275 @@
 
         if (!date || !chargeVal) { showToast('⚠️ Укажите дату и заряд'); return; }
         if (selectedBatts.length === 0) { showToast('⚠️ Выберите аккумулятор'); return; }
+        
         const charge = parseInt(chargeVal);
-        if (isNaN(charge)) { showToast('⚠️ Некорректное значение заряда'); return; }
+        if (isNaN(charge) || charge < 0 || charge > 100) { 
+            showToast('⚠️ Заряд должен быть 0-100%'); 
+            return; 
+        }
 
-        let count = 0;
         selectedBatts.forEach(batt => {
             entries.push({
                 id: Date.now() + Math.random(), 
-                date: date,
-                charge: charge,
-                battery: batt 
+                date: date, 
+                battery: parseInt(batt), 
+                charge: charge
             });
-            count++;
         });
 
         saveData();
-        showToast(`✅ Добавлено: ${count} шт.`);
+        showToast('✅ Добавлено: ' + selectedBatts.length + ' АКБ');
         document.getElementById('chargeInput').value = '';
     }
 
+    // === Удаление записи ===
     function deleteEntry(id) {
         if(confirm('Удалить эту запись?')) {
             entries = entries.filter(e => e.id !== id);
             saveData();
+            showToast('🗑️ Удалено');
         }
     }
-
+    // === Очистка всех данных ===
     function clearAll() {
-        if(confirm('Вы уверены, что хотите удалить ВСЮ историю?')) {
+        if(entries.length === 0) { showToast('📭 Нет данных для очистки'); return; }
+        if(confirm('⚠️ Удалить ВСЕ записи? Это действие нельзя отменить.')) {
             entries = [];
             saveData();
+            showToast('🧹 Все данные очищены');
         }
     }
 
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-
+    // === Экспорт в CSV ===
     function exportCSV() {
-        if (entries.length === 0) { alert('Нет данных для экспорта'); return; }
-        let csvContent = "\uFEFFДата;Номер АКБ;Заряд %\n";
-        entries.forEach(e => {
-            const d = new Date(e.date);
-            csvContent += `${d.toLocaleDateString('ru-RU')};${e.battery};${e.charge}\n`;
+        if(entries.length === 0) { showToast('📭 Нет данных для экспорта'); return; }
+        
+        let csv = 'Дата;АКБ;Заряд(%)\n';
+        entries.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(e => {
+            csv += `${e.date};${e.battery};${e.charge}\n`;
         });
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");        link.href = URL.createObjectURL(blob);
-        link.download = `battery_log_${new Date().toISOString().slice(0,10)}.csv`;
+        
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `battery_export_${new Date().toISOString().slice(0,10)}.csv`;
         link.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 CSV экспортирован');
     }
 
-    // --- ГОЛОСОВОЙ ВВОД ---
+    // === Голосовой ввод ===
     let recognition;
     let isListening = false;
 
-    function initSpeech() {
+    function toggleVoice() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            showToast('🎤 Голосовой ввод не поддерживается');
+            return;
+        }
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) { alert('Голосовой ввод не поддерживается.'); return null; }
-        const rec = new SpeechRecognition();
-        rec.lang = 'ru-RU';
-        rec.interimResults = false;
-        rec.maxAlternatives = 1;
-        return rec;
+        
+        if (!recognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ru-RU';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase().trim();                parseVoiceCommand(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                stopListening();
+                if(event.error === 'no-speech') showToast('🎤 Не удалось распознать речь');
+                else if(event.error === 'audio-capture') showToast('🎤 Нет доступа к микрофону');
+            };
+
+            recognition.onend = () => { if(isListening) stopListening(); };
+        }
+
+        if (isListening) {
+            recognition.stop();
+            stopListening();
+        } else {
+            startListening();
+            recognition.start();
+        }
     }
 
-    function toggleVoice() {
-        if (!recognition) recognition = initSpeech();
-        if (!recognition) return;
-
+    function startListening() {
+        isListening = true;
         const btn = document.getElementById('voiceBtn');
         const icon = document.getElementById('micIcon');
         const text = document.getElementById('micText');
         const status = document.getElementById('voiceStatus');
-
-        if (isListening) {
-            recognition.stop();
-        } else {
-            recognition.start();
-        }
-
-        recognition.onstart = () => {
-            isListening = true;
-            btn.classList.add('listening');
-            icon.innerText = "🛑";
-            text.innerText = "Стоп";
-            status.innerText = "Слушаю...";
-        };
-
-        recognition.onend = () => {
-            isListening = false;
-            btn.classList.remove('listening');
-            icon.innerText = "🎤";
-            text.innerText = "Нажать и сказать";
-        };
-
-        recognition.onresult = (event) => {            const rawText = event.results[0][0].transcript;
-            status.innerText = `Распознано: "${rawText}"`;
-            processVoiceCommand(rawText.toLowerCase());
-        };
         
-        recognition.onerror = (event) => {
-             status.innerText = "Ошибка распознавания";
-             isListening = false;
-             btn.classList.remove('listening');
-        };
+        btn.classList.add('listening');
+        icon.textContent = '🔴';
+        text.textContent = 'Слушаю...';
+        status.textContent = 'Говорите: "АКБ 2 заряд 85%"';
     }
 
-    function processVoiceCommand(text) {
-        let foundBatteryIds = [];
-        let foundDate = null;
-        let foundCharge = null;
+    function stopListening() {
+        isListening = false;
+        const btn = document.getElementById('voiceBtn');
+        const icon = document.getElementById('micIcon');
+        const text = document.getElementById('micText');
+        const status = document.getElementById('voiceStatus');
+        
+        btn.classList.remove('listening');
+        icon.textContent = '🎤';
+        text.textContent = 'Нажать и сказать';
+        status.textContent = '';
+    }
 
-        for (let word in batteryAliases) {
-            if (text.includes(word)) {
-                const val = batteryAliases[word];
-                if (!foundBatteryIds.includes(val)) foundBatteryIds.push(val);
-            }
+    function parseVoiceCommand(text) {
+        stopListening();        
+        // Извлечение заряда: "85%", "восемьдесят пять", "85 процентов"
+        let charge = null;
+        const percentMatch = text.match(/(\d{1,3})\s*%?/);
+        if (percentMatch) {
+            charge = parseInt(percentMatch[1]);
+            if (charge > 100) charge = null;
         }
         
-        const battRegex = /(?:акб|номер|батарея)\s*(\d)/gi;
-        let match;
-        while ((match = battRegex.exec(text)) !== null) {
-            const num = parseInt(match[1]);
-            if (num >= 1 && num <= 4 && !foundBatteryIds.includes(num)) {
-                foundBatteryIds.push(num);
+        // Русские цифры
+        const numberWords = {
+            'ноль':0,'один':1,'два':2,'три':3,'четыре':4,'пять':5,
+            'шесть':6,'семь':7,'восемь':8,'девять':9,'десять':10,
+            'двадцать':20,'тридцать':30,'сорок':40,'пятьдесят':50,
+            'шестьдесят':60,'семьдесят':70,'восемьдесят':80,'девяносто':90,'сто':100
+        };
+        
+        for (const [word, num] of Object.entries(numberWords)) {
+            if (text.includes(word) && charge === null) {
+                charge = num;
+                break;
             }
         }
 
-        if (foundBatteryIds.length > 0) {
-            document.querySelectorAll('.batt-checkbox').forEach(cb => cb.checked = false);
-            foundBatteryIds.forEach(id => {
-                const chk = document.getElementById('chk' + id);
-                if(chk) chk.checked = true;
-            });
+        // Извлечение номера батареи
+        let battery = null;
+        for (const [alias, num] of Object.entries(batteryAliases)) {
+            if (text.includes(alias)) { battery = num; break; }
         }
-
-        if (text.includes('сегодня')) {
-            foundDate = new Date().toISOString().split('T')[0];
-        } else if (text.includes('вчера')) {
-            const d = new Date(); d.setDate(d.getDate() - 1);
-            foundDate = d.toISOString().split('T')[0];
-        } else {
-            const dateRegex = /(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)/;
-            const dateMatch = text.match(dateRegex);
-            if (dateMatch) {                const day = parseInt(dateMatch[1]);
-                const month = months[dateMatch[2]];
-                const year = new Date().getFullYear();
-                const d = new Date(year, month, day);
-                foundDate = d.toISOString().split('T')[0];
-            }
+        if (!battery) {
+            const battMatch = text.match(/акб\s*(\d)/i) || text.match(/батаре[ия]\s*(\d)/i);
+            if (battMatch) battery = parseInt(battMatch[1]);
         }
+        if (!battery) battery = 1; // По умолчанию
 
-        if (foundDate) {
-            document.getElementById('dateInput').value = foundDate;
-        } else {
-            foundDate = document.getElementById('dateInput').value;
-        }
-
-        const numbers = text.match(/\d+/g);
-        if (numbers) {
-            for (let numStr of numbers) {
-                const num = parseInt(numStr);
-                if (num >= 5 && num <= 100) {
-                    foundCharge = num;
-                } else if (num === 0) {
-                     foundCharge = 0;
+        // Извлечение даты
+        let date = new Date().toISOString().split('T')[0];
+        for (const [monthRu, monthIdx] of Object.entries(months)) {
+            if (text.includes(monthRu)) {
+                const dayMatch = text.match(/(\d{1,2})\s*(?:число)?/);
+                if (dayMatch) {
+                    const day = parseInt(dayMatch[1]);
+                    const year = new Date().getFullYear();
+                    const newDate = new Date(year, monthIdx, day);
+                    if (!isNaN(newDate)) date = newDate.toISOString().split('T')[0];
                 }
+                break;
             }
         }
-
-        if (foundCharge !== null) {
-            document.getElementById('chargeInput').value = foundCharge;
+        // Валидация
+        if (charge === null || isNaN(charge)) {
+            showToast('⚠️ Не распознан заряд');
+            return;
         }
 
-        if (foundCharge !== null && foundDate) {
-            setTimeout(() => {
-                if(getSelectedBatteries().length > 0) {
-                    manualAddEntry();
-                } else {
-                    showToast('⚠️ Не выбрана батарея');
-                }
-            }, 1500);
-        } else {
-            showToast("⚠️ Не распознан процент заряда");
+        // Добавление записи
+        entries.push({ id: Date.now() + Math.random(), date, battery, charge });
+        saveData();
+        showToast(`🎤 АКБ ${battery}: ${charge}%`);
+    }
+
+
+    // ============================================
+    // 🚀 SPLASH SCREEN: Эффект проваливания
+    // ============================================
+
+    function createPortalParticles() {
+        const container = document.getElementById('portalParticles');
+        if (!container) return;
+        container.innerHTML = '';
+        const count = 30 + Math.floor(Math.random() * 20);
+        
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'portal-particle';
+            const leftPos = 30 + Math.random() * 40;
+            const delay = Math.random() * 0.5;
+            const duration = 0.8 + Math.random() * 0.6;
+            
+            particle.style.left = `${leftPos}%`;
+            particle.style.top = `${20 + Math.random() * 30}%`;
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            
+            const colors = ['var(--accent-cyan)', 'var(--accent-purple)', '#ffffff', 'var(--accent-green)'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.background = color;
+            particle.style.boxShadow = `0 0 10px ${color}`;
+            
+            container.appendChild(particle);
         }
     }
 
-    render();
+    function startSplashAnimation() {
+        const splash = document.getElementById('splash-screen');
+        if (!splash) { initApp(); return; }
+        
+        // Проверка prefers-reduced-motion
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {            splash.classList.add('hidden');
+            initApp();
+            return;
+        }
+        
+        createPortalParticles();
+        
+        // Анимация "падения"
+        setTimeout(() => { splash.classList.add('falling'); }, 1800);
+        
+        // Скрытие сплеша и инициализация приложения
+        setTimeout(() => {
+            splash.classList.add('hidden');
+            initApp();
+        }, 2500);
+    }
+
+    function initApp() {
+        // Установка даты по умолчанию
+        document.getElementById('dateInput').valueAsDate = new Date();
+        
+        // Загрузка данных
+        try {
+            const storedData = localStorage.getItem('batteryEntriesPro');
+            if (storedData) {
+                const parsed = JSON.parse(storedData);
+                if (Array.isArray(parsed)) entries = parsed;
+            }
+        } catch (e) { console.error('Ошибка загрузки данных:', e); }
+        
+        // Рендер списка
+        render();
+    }
+
+    // Запуск при загрузке
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startSplashAnimation);
+    } else {
+        startSplashAnimation();
+    }
+
+    // Обработчик клавиши Enter в поле заряда
+    document.getElementById('chargeInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') manualAddEntry();
+    });
 </script>
-
 </body>
 </html>
