@@ -595,4 +595,189 @@
             entries.push({
                 id: Date.now() + Math.random(), 
                 date: date,
-         
+                charge: charge,
+                battery: batt 
+            });
+            count++;
+        });
+
+        saveData();
+        showToast(`✅ Добавлено: ${count} шт.`);
+        document.getElementById('chargeInput').value = '';
+    }
+
+    function deleteEntry(id) {
+        if(confirm('Удалить эту запись?')) {
+            entries = entries.filter(e => e.id !== id);
+            saveData();
+        }
+    }
+
+    function clearAll() {
+        if(confirm('Вы уверены, что хотите удалить ВСЮ историю?')) {
+            entries = [];
+            saveData();
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function exportCSV() {
+        if (entries.length === 0) { alert('Нет данных для экспорта'); return; }
+        let csvContent = "\uFEFFДата;Номер АКБ;Заряд %\n";
+        entries.forEach(e => {
+            const d = new Date(e.date);
+            csvContent += `${d.toLocaleDateString('ru-RU')};${e.battery};${e.charge}\n`;
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");        link.href = URL.createObjectURL(blob);
+        link.download = `battery_log_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    }
+
+    // --- ГОЛОСОВОЙ ВВОД ---
+    let recognition;
+    let isListening = false;
+
+    function initSpeech() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) { alert('Голосовой ввод не поддерживается.'); return null; }
+        const rec = new SpeechRecognition();
+        rec.lang = 'ru-RU';
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+        return rec;
+    }
+
+    function toggleVoice() {
+        if (!recognition) recognition = initSpeech();
+        if (!recognition) return;
+
+        const btn = document.getElementById('voiceBtn');
+        const icon = document.getElementById('micIcon');
+        const text = document.getElementById('micText');
+        const status = document.getElementById('voiceStatus');
+
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+
+        recognition.onstart = () => {
+            isListening = true;
+            btn.classList.add('listening');
+            icon.innerText = "🛑";
+            text.innerText = "Стоп";
+            status.innerText = "Слушаю...";
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            btn.classList.remove('listening');
+            icon.innerText = "🎤";
+            text.innerText = "Нажать и сказать";
+        };
+
+        recognition.onresult = (event) => {            const rawText = event.results[0][0].transcript;
+            status.innerText = `Распознано: "${rawText}"`;
+            processVoiceCommand(rawText.toLowerCase());
+        };
+        
+        recognition.onerror = (event) => {
+             status.innerText = "Ошибка распознавания";
+             isListening = false;
+             btn.classList.remove('listening');
+        };
+    }
+
+    function processVoiceCommand(text) {
+        let foundBatteryIds = [];
+        let foundDate = null;
+        let foundCharge = null;
+
+        for (let word in batteryAliases) {
+            if (text.includes(word)) {
+                const val = batteryAliases[word];
+                if (!foundBatteryIds.includes(val)) foundBatteryIds.push(val);
+            }
+        }
+        
+        const battRegex = /(?:акб|номер|батарея)\s*(\d)/gi;
+        let match;
+        while ((match = battRegex.exec(text)) !== null) {
+            const num = parseInt(match[1]);
+            if (num >= 1 && num <= 4 && !foundBatteryIds.includes(num)) {
+                foundBatteryIds.push(num);
+            }
+        }
+
+        if (foundBatteryIds.length > 0) {
+            document.querySelectorAll('.batt-checkbox').forEach(cb => cb.checked = false);
+            foundBatteryIds.forEach(id => {
+                const chk = document.getElementById('chk' + id);
+                if(chk) chk.checked = true;
+            });
+        }
+
+        if (text.includes('сегодня')) {
+            foundDate = new Date().toISOString().split('T')[0];
+        } else if (text.includes('вчера')) {
+            const d = new Date(); d.setDate(d.getDate() - 1);
+            foundDate = d.toISOString().split('T')[0];
+        } else {
+            const dateRegex = /(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)/;
+            const dateMatch = text.match(dateRegex);
+            if (dateMatch) {                const day = parseInt(dateMatch[1]);
+                const month = months[dateMatch[2]];
+                const year = new Date().getFullYear();
+                const d = new Date(year, month, day);
+                foundDate = d.toISOString().split('T')[0];
+            }
+        }
+
+        if (foundDate) {
+            document.getElementById('dateInput').value = foundDate;
+        } else {
+            foundDate = document.getElementById('dateInput').value;
+        }
+
+        const numbers = text.match(/\d+/g);
+        if (numbers) {
+            for (let numStr of numbers) {
+                const num = parseInt(numStr);
+                if (num >= 5 && num <= 100) {
+                    foundCharge = num;
+                } else if (num === 0) {
+                     foundCharge = 0;
+                }
+            }
+        }
+
+        if (foundCharge !== null) {
+            document.getElementById('chargeInput').value = foundCharge;
+        }
+
+        if (foundCharge !== null && foundDate) {
+            setTimeout(() => {
+                if(getSelectedBatteries().length > 0) {
+                    manualAddEntry();
+                } else {
+                    showToast('⚠️ Не выбрана батарея');
+                }
+            }, 1500);
+        } else {
+            showToast("⚠️ Не распознан процент заряда");
+        }
+    }
+
+    render();
+</script>
+
+</body>
+</html>
