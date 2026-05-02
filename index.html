@@ -3,213 +3,367 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Учёт зарядки Multi</title>
-    <meta name="theme-color" content="#f8f9fa">
+    <title>Battery Tracker Pro</title>
+    <meta name="theme-color" content="#050505">
     
+    <!-- Подключаем шрифт Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --primary: #2563eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --bg: #f3f4f6;
-            --card: #ffffff;
-            --text: #1f2937;
-            --text-secondary: #6b7280;
+            --bg-body: #020204;       
+            --card-bg: rgba(10, 15, 30, 0.65); 
+            --text-main: #e2e8f0;     
+            --text-sec: #94a3b8;      
+            --accent-cyan: #06b6d4;   /* Неоновый голубой */
+            --accent-purple: #8b5cf6; /* Неоновый фиолетовый */
+            --accent-green: #10b981;  
+            --danger: #ef4444;        
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             margin: 0;
-            padding: 10px;
+            padding: 20px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            overflow-x: hidden; 
         }
+
+        /* --- ФОНОВАЯ АНИМАЦИЯ (CANVAS) --- */
+        #battery-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; 
+            /* Глубокий космический градиент */
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 40%, #000000 100%);        }
 
         .container { 
             width: 100%; 
-            max-width: 600px; 
+            max-width: 500px; 
             margin: 0 auto;
+            position: relative;
+            z-index: 1; 
         }
 
-        h1 { font-size: 22px; margin-bottom: 5px; text-align: center; }
-        .subtitle { text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 15px; }
+        h1 { 
+            font-size: 24px; 
+            font-weight: 800; 
+            margin: 0 0 5px 0; 
+            text-align: center; 
+            letter-spacing: -0.5px;
+            color: white;
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6); /* Фиолетовое свечение */
+        }
+        .subtitle { 
+            text-align: center; 
+            color: var(--text-sec); 
+            font-size: 14px; 
+            margin-bottom: 25px; 
+        }
 
-        /* Панель ввода */
+        /* Карточка ввода - Glassmorphism */
         .input-group {
-            background: var(--card);
-            padding: 15px;
-            border-radius: 16px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            margin-bottom: 15px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border-left: 3px solid var(--accent-purple);
+            border-top: var(--glass-border);
+            border-right: var(--glass-border);
+            border-bottom: var(--glass-border);
         }
-        .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        
-        input[type="date"], input[type="number"] {
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
+
+        /* Кнопка микрофона */
+        .btn-voice { 
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white; 
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 600;            cursor: pointer;
             width: 100%;
-            outline: none;
-            background: #fff;
-        }
-
-        /* Стили для чекбоксов-кнопок */
-        .battery-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .batt-checkbox {
-            display: none; /* Прячем стандартный чекбокс */
-        }
-
-        .batt-label {
-            flex: 1;
-            padding: 10px 5px;
-            background: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s;
-            user-select: none;
-            color: var(--text-secondary);
-        }
-
-        /* Активное состояние чекбокса */
-        .batt-checkbox:checked + .batt-label {
-            background: #dbeafe;
-            border-color: var(--primary);
-            color: var(--primary);
-            font-weight: 700;
-            box-shadow: 0 0 0 1px var(--primary);
-        }
-        
-        /* Кнопки */
-        button {            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
-        button:active { transform: scale(0.98); }
-
-        .btn-voice { 
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white; 
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
             margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         }
         
-        .listening { animation: pulse 1.5s infinite; background: #ef4444 !important; }
+        .btn-voice:active { transform: scale(0.98); }
+        
+        .listening { 
+            animation: pulse-red 1.5s infinite; 
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+        }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        .btn-add { background-color: var(--success); color: white; margin-bottom: 10px;}
-        
-        .actions-row { display: flex; gap: 10px; }
-        .btn-export { background-color: #4b5563; color: white; font-size: 14px; padding: 10px;}
-        .btn-clear { background-color: transparent; color: #9ca3af; font-size: 14px; border: 1px solid #e5e7eb; padding: 10px;}
-
-        .btn-delete { 
-            background: #fee2e2; 
-            color: var(--danger); 
-            padding: 6px 10px; 
-            font-size: 12px; 
-            margin-left: auto;
-            width: auto;
+        .status-text { 
+            text-align: center; 
+            font-size: 13px; 
+            height: 20px; 
+            margin-bottom: 15px; 
+            color: var(--text-sec); 
+            font-style: italic;
         }
 
-        /* Список */
+        /* Селектор батарей */
+        .battery-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .batt-checkbox { display: none; }
+
+        .batt-label {
+            padding: 10px 5px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid #334155;            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            color: var(--text-sec);
+            user-select: none;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .batt-checkbox:checked + .batt-label {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            color: #ddd6fe;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .batt-label::before {
+            content: "🔋";
+            display: block;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        /* Поля ввода */
+        .row { display: flex; gap: 12px; margin-bottom: 20px; }
+        
+        input[type="date"], input[type="number"] {
+            padding: 14px;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+            background: rgba(2, 6, 23, 0.6);
+            color: var(--text-main);
+            font-family: inherit;
+            transition: border-color 0.2s;
+            backdrop-filter: blur(5px);
+        }
+        
+        input:focus { border-color: #8b5cf6; background: rgba(2, 6, 23, 0.9); }
+
+        /* Основные кнопки действий */
+        button.btn-add { 
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;             border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .actions-row { display: flex; gap: 10px; }
+        
+        .btn-secondary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            background: rgba(15, 23, 42, 0.4);
+            color: var(--text-main);
+            backdrop-filter: blur(5px);
+        }
+        
+        .btn-export:hover { background: rgba(30, 41, 59, 0.8); }
+        .btn-clear { background: rgba(127, 29, 29, 0.4); color: #fecaca; }
+        .btn-clear:hover { background: rgba(153, 27, 27, 0.6); }
+
+        /* Список истории */
         .list-container { 
-            background: var(--card); 
-            border-radius: 16px; 
+            background: var(--card-bg); 
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius); 
             overflow: hidden; 
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);             width: 100%;
+            box-shadow: var(--shadow); 
+            border-left: 3px solid var(--accent-purple);
+            border-top: var(--glass-border);
+            border-right: var(--glass-border);
+            border-bottom: var(--glass-border);
         }
         
         .list-header { 
-            padding: 12px 15px; 
-            background: #f9fafb; 
-            border-bottom: 1px solid #e5e7eb; 
-            font-weight: 600; 
-            font-size: 14px; 
-            color: var(--text-secondary); 
+            padding: 15px 20px; 
+            background: rgba(2, 6, 23, 0.8); 
+            border-bottom: 1px solid #1e293b; 
+            font-weight: 700; 
+            font-size: 14px;             color: var(--text-sec); 
             display: flex; 
             justify-content: space-between;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .list-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.5);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            transition: background 0.2s;
+            
+            animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(10px);
         }
         
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .list-item:last-child { border-bottom: none; }
+        
         .item-info { flex: 1; }
-        .item-date { font-weight: 500; font-size: 15px; }
-        .item-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
+        .item-date { font-weight: 600; font-size: 15px; color: var(--text-main); }
         
-        .badge-batt { background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        .badge-cycle { background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        .item-meta { 
+            margin-top: 4px; 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+        }
         
-        .item-charge { font-weight: 800; color: var(--success); font-size: 18px; min-width: 50px; text-align: right; }
+        .badge { 
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: 700; 
+        }
+        .badge-batt { 
+            background: rgba(139, 92, 246, 0.2); 
+            color: #c4b5fd; 
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }        .badge-cycle { 
+            background: rgba(6, 182, 212, 0.2); 
+            color: #67e8f9;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+        
+        .item-charge { 
+            font-weight: 800; 
+            color: #34d399; 
+            font-size: 20px; 
+            min-width: 60px; 
+            text-align: right; 
+            text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+        }
 
-        .status-text { text-align: center; font-size: 13px; height: 18px; margin-bottom: 10px; color: var(--text-secondary); font-style: italic;}
-        
+        .btn-delete { 
+            background: transparent;
+            color: #475569;
+            border: none;
+            font-size: 18px;
+            padding: 5px;
+            width: auto;
+            margin: 0;
+        }
+        .btn-delete:hover { color: var(--danger); }
+
+        /* Toast уведомление */
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(2, 6, 23, 0.95);
+            backdrop-filter: blur(5px);
             color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 24px;
+            border-radius: 30px;
             font-size: 14px;
+            font-weight: 500;
             opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 100;
-            width: max-content;
-            max-width: 90%;
-        }        .toast.show { opacity: 1; }
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .toast.show {             opacity: 1; 
+            visibility: visible; 
+            transform: translateX(-50%) translateY(0); 
+        }
     </style>
 </head>
 <body>
 
+<!-- Канвас для анимации -->
+<canvas id="battery-canvas"></canvas>
+
 <div class="container">
-    <h1>🔋 Battery Tracker Multi</h1>
-    <div class="subtitle">Выберите несколько АКБ и нажмите добавить</div>
+    <h1>🔋 Battery Tracker</h1>
+    <div class="subtitle">Учёт заряда аккумуляторов</div>
 
     <div class="input-group">
+        <!-- Голосовой ввод -->
         <button class="btn-voice" id="voiceBtn" onclick="toggleVoice()">
-            🎤 Голосовой ввод
+            <span id="micIcon">🎤</span> <span id="micText">Нажать и сказать</span>
         </button>
         <div class="status-text" id="voiceStatus"></div>
 
-        <!-- Выбор АКБ через чекбоксы -->
+        <!-- Выбор АКБ -->
         <div class="battery-selector">
             <input type="checkbox" id="chk1" class="batt-checkbox" value="1" checked>
             <label for="chk1" class="batt-label">АКБ 1</label>
@@ -224,47 +378,157 @@
             <label for="chk4" class="batt-label">АКБ 4</label>
         </div>
 
+        <!-- Поля даты и заряда -->
         <div class="row">
             <input type="date" id="dateInput">
-            <input type="number" id="chargeInput" placeholder="%" min="0" max="100">
+            <input type="number" id="chargeInput" placeholder="Заряд %" min="0" max="100">
         </div>
 
         <button class="btn-add" onclick="manualAddEntry()">
-            ➕ Добавить запись
+            Добавить запись
         </button>
         
         <div class="actions-row">
-            <button class="btn-export" onclick="exportCSV()">📥 Скачать CSV</button>
-            <button class="btn-clear" onclick="clearAll()">Очистить</button>
-        </div>
+            <button class="btn-secondary btn-export" onclick="exportCSV()">📥 CSV</button>
+            <button class="btn-secondary btn-clear" onclick="clearAll()">Очистить всё</button>        </div>
     </div>
 
     <div class="list-container">
         <div class="list-header">
             <span>История</span>
-            <span>Записей: <span id="totalCount">0</span></span>
-        </div>        <div id="listBody"></div>
+            <span>Всего: <span id="totalCount">0</span></span>
+        </div>
+        <div id="listBody"></div>
     </div>
 </div>
 
-<div id="toast" class="toast">✅ Запись добавлена</div>
+<div id="toast" class="toast">✅ Успешно добавлено</div>
 
 <script>
-    // Инициализация
-    document.getElementById('dateInput').valueAsDate = new Date();
-    let entries = JSON.parse(localStorage.getItem('batteryEntriesPro')) || [];
+    // --- АНИМАЦИЯ: КОСМИЧЕСКОЕ ЯДРО (MILKY WAY) ---
+    const canvas = document.getElementById('battery-canvas');
+    const ctx = canvas.getContext('2d');
     
+    let width, height;
+    let particles = [];
+    
+    // Настройки галактики
+    const config = {
+        particleCount: 200,     // Много звезд для плотности
+        rotationSpeed: 0.002,   // Скорость вращения галактики
+        trailOpacity: 0.1       // Длина хвостов (меньше = длиннее)
+    };
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Класс Звезды/Частицы
+    class Star {
+        constructor() {
+            this.reset(true);
+        }
+
+        reset(initial = false) {
+            // Распределяем частицы в виде спирали/диска
+            // Радиус от центра
+            this.radius = Math.random() * (Math.max(width, height) / 1.5);
+            
+            // Угол
+            this.angle = Math.random() * Math.PI * 2;
+                        // Скорость вращения зависит от расстояния (ближе к центру - быстрее)
+            // Добавляем немного случайности для реалистичности
+            this.speed = (config.rotationSpeed * (1000 / (this.radius + 100))) * (0.8 + Math.random() * 0.4);
+            
+            // Размер зависит от близости к центру (в центре ярче и крупнее)
+            const centerFactor = 1 - (this.radius / (Math.max(width, height) / 1.5));
+            this.size = Math.random() * (1 + centerFactor * 2);
+            
+            // Цвет: в центре белые/желтые, на краях синие/фиолетовые
+            if (centerFactor > 0.7) {
+                this.color = `rgba(255, 255, 255, ${0.5 + Math.random() * 0.5})`; // Белый центр
+            } else if (centerFactor > 0.3) {
+                this.color = `rgba(139, 92, 246, ${0.4 + Math.random() * 0.4})`; // Фиолетовый средний
+            } else {
+                this.color = `rgba(6, 182, 212, ${0.2 + Math.random() * 0.3})`; // Голубой край
+            }
+        }
+
+        update() {
+            // Вращаем частицу
+            this.angle += this.speed;
+        }
+
+        draw() {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Переводим полярные координаты в декартовы
+            const x = centerX + Math.cos(this.angle) * this.radius;
+            const y = centerY + Math.sin(this.angle) * this.radius;
+
+            ctx.beginPath();
+            ctx.arc(x, y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            
+            // Добавляем свечение только для крупных центральных звезд
+            if (this.size > 1.5) {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.fill();
+        }
+    }
+
+    // Создаем массив звезд
+    for(let i = 0; i < config.particleCount; i++) {
+        particles.push(new Star());    }
+
+    // Главный цикл анимации
+    function animate() {
+        // Эффект шлейфа без мигания
+        ctx.fillStyle = `rgba(2, 2, 4, ${config.trailOpacity})`;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Рисуем звезды
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+
+    // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
+    document.getElementById('dateInput').valueAsDate = new Date();
+    
+    let entries = [];
+    try {
+        const storedData = localStorage.getItem('batteryEntriesPro');
+        if (storedData) {
+            const parsed = JSON.parse(storedData);
+            if (Array.isArray(parsed)) entries = parsed;
+        }
+    } catch (e) { console.error(e); }
+
     const months = {
         'января': 0, 'февраля': 1, 'марта': 2, 'апреля': 3, 'мая': 4, 'июня': 5,
         'июля': 6, 'августа': 7, 'сентября': 8, 'октября': 9, 'ноября': 10, 'декабря': 11
     };
     
-    // Словарь для распознавания номеров (включая множественные формы)
     const batteryAliases = {
-        'первый': 1, 'первую': 1, 'один': 1, 'единицу': 1, 'первый': 1,
-        'второй': 2, 'вторую': 2, 'два': 2, 'двойку': 2,
-        'третий': 3, 'тройку': 3, 'три': 3,
-        'четвертый': 4, 'четверку': 4, 'четыре': 4
+        'первый': 1, 'первую': 1, 'один': 1, 'единицу': 1, 'первое': 1,
+        'второй': 2, 'вторую': 2, 'два': 2, 'двойку': 2, 'второе': 2,
+        'третий': 3, 'тройку': 3, 'три': 3, 'третье': 3,
+        'четвертый': 4, 'четверку': 4, 'четыре': 4, 'четвёртую': 4
     };
 
     function render() {
@@ -273,18 +537,20 @@
         
         entries.sort((a, b) => new Date(b.date) - new Date(a.date));
         document.getElementById('totalCount').innerText = entries.length;
-
         let cycleCounters = {};
         entries.forEach(e => {
-            cycleCounters[e.battery] = (cycleCounters[e.battery] || 0) + 1;
+            const battKey = String(e.battery);
+            cycleCounters[battKey] = (cycleCounters[battKey] || 0) + 1;
         });
 
-        entries.forEach((entry) => {
-            const currentCycle = cycleCounters[entry.battery];
-            cycleCounters[entry.battery]--; 
+        entries.forEach((entry, index) => {
+            const battKey = String(entry.battery);
+            const currentCycle = cycleCounters[battKey];
+            cycleCounters[battKey]--; 
 
             const div = document.createElement('div');
             div.className = 'list-item';
+            div.style.animationDelay = `${index * 0.05}s`; 
             
             const dateObj = new Date(entry.date);
             const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
@@ -292,8 +558,9 @@
             div.innerHTML = `
                 <div class="item-info">
                     <div class="item-date">${dateStr}</div>
-                    <div class="item-meta">                        <span class="badge-batt">АКБ ${entry.battery}</span>
-                        <span class="badge-cycle">Цикл: ${currentCycle}</span>
+                    <div class="item-meta">
+                        <span class="badge badge-batt">АКБ ${entry.battery}</span>
+                        <span class="badge badge-cycle">Цикл ${currentCycle}</span>
                     </div>
                 </div>
                 <div class="item-charge">${entry.charge}%</div>
@@ -308,7 +575,6 @@
         render();
     }
 
-    // Функция получения выбранных АКБ
     function getSelectedBatteries() {
         const checkboxes = document.querySelectorAll('.batt-checkbox:checked');
         return Array.from(checkboxes).map(cb => cb.value);
@@ -316,32 +582,27 @@
 
     function manualAddEntry() {
         const date = document.getElementById('dateInput').value;
-        const charge = document.getElementById('chargeInput').value;
+        const chargeVal = document.getElementById('chargeInput').value;
         const selectedBatts = getSelectedBatteries();
 
-        if (!date || !charge) {
-            alert('Заполните дату и процент заряда');
-            return;
-        }
-        
-        if (selectedBatts.length === 0) {
-            alert('Выберите хотя бы один аккумулятор');
-            return;
-        }
+        if (!date || !chargeVal) { showToast('⚠️ Укажите дату и заряд'); return; }
+        if (selectedBatts.length === 0) { showToast('⚠️ Выберите аккумулятор'); return; }
+        const charge = parseInt(chargeVal);
+        if (isNaN(charge)) { showToast('⚠️ Некорректное значение заряда'); return; }
 
         let count = 0;
         selectedBatts.forEach(batt => {
-            const newEntry = {
-                id: Date.now() + Math.random(), // Уникальный ID
+            entries.push({
+                id: Date.now() + Math.random(), 
                 date: date,
-                charge: parseInt(charge),
-                battery: batt
-            };
-            entries.push(newEntry);
+                charge: charge,
+                battery: batt 
+            });
             count++;
         });
 
-        saveData();        showToast(`Добавлено записей: ${count}`);
+        saveData();
+        showToast(`✅ Добавлено: ${count} шт.`);
         document.getElementById('chargeInput').value = '';
     }
 
@@ -353,7 +614,7 @@
     }
 
     function clearAll() {
-        if(confirm('Удалить ВСЮ историю?')) {
+        if(confirm('Вы уверены, что хотите удалить ВСЮ историю?')) {
             entries = [];
             saveData();
         }
@@ -363,34 +624,20 @@
         const t = document.getElementById('toast');
         t.innerText = msg;
         t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2000);
+        setTimeout(() => t.classList.remove('show'), 3000);
     }
 
     function exportCSV() {
-        if (entries.length === 0) {
-            alert('Нет данных для экспорта');
-            return;
-        }
-
-        let csvContent = "\uFEFF"; 
-        csvContent += "Дата;Номер АКБ;Заряд %\n";
-
+        if (entries.length === 0) { alert('Нет данных для экспорта'); return; }
+        let csvContent = "\uFEFFДата;Номер АКБ;Заряд %\n";
         entries.forEach(e => {
             const d = new Date(e.date);
-            const dateFormatted = d.toLocaleDateString('ru-RU');
-            csvContent += `${dateFormatted};${e.battery};${e.charge}\n`;
+            csvContent += `${d.toLocaleDateString('ru-RU')};${e.battery};${e.charge}\n`;
         });
-
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        
-        link.setAttribute("href", url);
-        link.setAttribute("download", `battery_log_${new Date().toISOString().slice(0,10)}.csv`);
-        link.style.visibility = 'hidden';
-        
-        document.body.appendChild(link);
-        link.click();        document.body.removeChild(link);
+        const link = document.createElement("a");        link.href = URL.createObjectURL(blob);
+        link.download = `battery_log_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
     }
 
     // --- ГОЛОСОВОЙ ВВОД ---
@@ -398,14 +645,12 @@
     let isListening = false;
 
     function initSpeech() {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert('Голосовой ввод не поддерживается.');
-            return null;
-        }
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) { alert('Голосовой ввод не поддерживается.'); return null; }
         const rec = new SpeechRecognition();
         rec.lang = 'ru-RU';
         rec.interimResults = false;
+        rec.maxAlternatives = 1;
         return rec;
     }
 
@@ -414,6 +659,8 @@
         if (!recognition) return;
 
         const btn = document.getElementById('voiceBtn');
+        const icon = document.getElementById('micIcon');
+        const text = document.getElementById('micText');
         const status = document.getElementById('voiceStatus');
 
         if (isListening) {
@@ -425,61 +672,59 @@
         recognition.onstart = () => {
             isListening = true;
             btn.classList.add('listening');
-            btn.innerText = "🛑 Стоп";
+            icon.innerText = "🛑";
+            text.innerText = "Стоп";
             status.innerText = "Слушаю...";
         };
 
         recognition.onend = () => {
             isListening = false;
             btn.classList.remove('listening');
-            btn.innerText = "🎤 Голосовой ввод";
+            icon.innerText = "🎤";
+            text.innerText = "Нажать и сказать";
         };
 
-        recognition.onresult = (event) => {
-            const text = event.results[0][0].transcript.toLowerCase();
-            status.innerText = `"${text}"`;
-            processVoiceCommand(text);
-        };    }
+        recognition.onresult = (event) => {            const rawText = event.results[0][0].transcript;
+            status.innerText = `Распознано: "${rawText}"`;
+            processVoiceCommand(rawText.toLowerCase());
+        };
+        
+        recognition.onerror = (event) => {
+             status.innerText = "Ошибка распознавания";
+             isListening = false;
+             btn.classList.remove('listening');
+        };
+    }
 
     function processVoiceCommand(text) {
         let foundBatteryIds = [];
         let foundDate = null;
         let foundCharge = null;
 
-        // 1. Поиск АКБ (Множественный выбор)
-        // Проверяем каждое слово из словаря
         for (let word in batteryAliases) {
             if (text.includes(word)) {
                 const val = batteryAliases[word];
-                if (!foundBatteryIds.includes(val)) {
-                    foundBatteryIds.push(val);
-                }
+                if (!foundBatteryIds.includes(val)) foundBatteryIds.push(val);
             }
         }
         
-        // Проверка на "номер X"
-        const battNumMatches = text.match(/(?:акб|номер|батарея)\s*(\d)/gi);
-        if (battNumMatches) {
-            battNumMatches.forEach(match => {
-                const num = parseInt(match.match(/\d/)[0]);
-                if (num >= 1 && num <= 4 && !foundBatteryIds.includes(num)) {
-                    foundBatteryIds.push(num);
-                }
-            });
+        const battRegex = /(?:акб|номер|батарея)\s*(\d)/gi;
+        let match;
+        while ((match = battRegex.exec(text)) !== null) {
+            const num = parseInt(match[1]);
+            if (num >= 1 && num <= 4 && !foundBatteryIds.includes(num)) {
+                foundBatteryIds.push(num);
+            }
         }
 
-        // Установка галочек
         if (foundBatteryIds.length > 0) {
-            // Сначала сбросим все
             document.querySelectorAll('.batt-checkbox').forEach(cb => cb.checked = false);
-            // Отметим найденные
             foundBatteryIds.forEach(id => {
                 const chk = document.getElementById('chk' + id);
                 if(chk) chk.checked = true;
             });
         }
 
-        // 2. Поиск Даты
         if (text.includes('сегодня')) {
             foundDate = new Date().toISOString().split('T')[0];
         } else if (text.includes('вчера')) {
@@ -502,29 +747,32 @@
             foundDate = document.getElementById('dateInput').value;
         }
 
-        // 3. Поиск Процентов
         const numbers = text.match(/\d+/g);
         if (numbers) {
             for (let numStr of numbers) {
                 const num = parseInt(numStr);
-                if (num >= 0 && num <= 100) {
+                if (num >= 5 && num <= 100) {
                     foundCharge = num;
+                } else if (num === 0) {
+                     foundCharge = 0;
                 }
             }
         }
 
-        if (foundCharge) {
+        if (foundCharge !== null) {
             document.getElementById('chargeInput').value = foundCharge;
         }
 
-        // АВТОСОХРАНЕНИЕ
-        // Сохраняем только если нашли заряд и дату. АКБ берем те, что сейчас отмечены.
-        if (foundDate && foundCharge) {
+        if (foundCharge !== null && foundDate) {
             setTimeout(() => {
-                manualAddEntry(); // Используем ту же функцию, она сама считает чекбоксы
-            }, 1000);
+                if(getSelectedBatteries().length > 0) {
+                    manualAddEntry();
+                } else {
+                    showToast('⚠️ Не выбрана батарея');
+                }
+            }, 1500);
         } else {
-            showToast("⚠️ Не распознан заряд или дата");
+            showToast("⚠️ Не распознан процент заряда");
         }
     }
 
@@ -532,4 +780,4 @@
 </script>
 
 </body>
-    </html>
+</html>
